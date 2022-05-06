@@ -1,0 +1,49 @@
+.screen-container {
+    width: 100em;
+    height: 70vh;
+    /* background-color: gray; */
+    /* background-color: rgba(255, 255, 255,0); */
+
+    margin: 0 auto;
+    padding: 1em;
+    /* z-index: 1; */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#gameplay-canvas {
+    width: 100em;
+    height: 70vh;
+    background-color: gray;
+    /* background-color: rgba(255, 255, 255,0); */
+
+    margin: 0 auto;
+    padding: 1em;
+    /* z-index: 1; */
+    /* position: absolute;
+    top: 0;
+    left: 0; */
+}
+
+.screen-container h2{
+color: black;
+}
+
+
+body {
+    /* display: grid; */
+
+}
+
+.negOneZ {
+    z-index: -1;
+}
+
+.posOneZ {
+    z-index: 1;
+}
+
+.posTwoZ {
+    z-index: 2;
+}
