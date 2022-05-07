@@ -95,12 +95,18 @@ class projectile {
     constructor(Xi,Yi,Vi,Deg){
         this.side = 10
         this.t = 0
-        this.Vi = Vi
-        this.Deg = Deg
+        this.Vi = 500
+        this.Vx = 0
+        this.Vyi = 0
+        this.Vyf = 0
+        this.Degi = 89
+        this.Degc = 89
         this.Xi = Xi
+        this.Xf
         this.Yi = Yi
-        this.Xf = 1
-        this.Yf = 1
+        this.Yf 
+
+
         this.centerXi = this.Xi - this.side/2
         this.centerYi = this.Yi - this.side/2
         // this.centerXf = 0
@@ -109,10 +115,61 @@ class projectile {
     }
 
     render(){
-        console.log(this.Deg)
+        let projScale = 0.001
+        // this.t = this.t*projScale
+        if (this.t === 0){
+            this.Degi = convertDegtoRad(this.Degi)
+            this.Degc = convertDegtoRad(this.Degc)
+            // console.log("converted i and c:",this.Degi,this.Degc)
+        }
+        // calculate initial Vix and Viy
+        this.Vx = this.Vi*Math.cos(this.Degi)
+        this.Vyi = this.Vi*Math.sin(this.Degi)
+        this.Vyf = this.Vyi-grav*this.t
         
-        gameplayCtx.fillStyle = "red"
-        gameplayCtx.fillRect(this.centerXi,this.centerYi,this.side,this.side)
+
+        console.log("proj t:",this.t)
+
+        // calculate new motion angle
+        this.Degc = Math.atan(this.Vyf/this.Vx)
+        console.log("Vx:", this.Vx, "Vyi:", this.Vyi,"Vyf:", this.Vyf, "DegC:", this.Degc)
+
+        //calculate vfx/vfy at t++ and set it as the next vix/viy
+
+        this.Xf = this.Xi+this.Vx*this.t
+        this.Yf = this.Yi+this.Vyi*this.t-grav*Math.pow(this.t,2)/2
+        // this.Yf = this.Yi+()
+        
+        console.log("Xi:", this.Xi, "Xf:", this.Xf)
+        console.log("Yi:", this.Yi, "Yf:", this.Yf, "YDetla:", this.Yf-this.Yi)
+        
+        this.Xi = this.Xf
+        this.Yi = this.Yf
+        this.Vyi = this.Vyf
+
+        // this.t = this.t + gameSpeed/1000
+        this.t++
+
+        // console.log("deg:", this.Deg)
+        
+        // console.log("Vix:", this.Vix)
+
+        
+        // this.Vi = Math.sqrt(Math.pow(this.Vix,2)-Math.pow(this.Viy,2))
+        // console.log("postcalc Vi:", this.Vi)
+        
+        // this.Deg = Math.atan(this.Viy/this.Vix)
+        // this.Xi = this.Vi*Math.cos(this.Deg)*this.t
+        // this.Yi = this.Vi*Math.sin(this.Deg)-grav*Math.pow(this.t,2)
+        // console.log("postcalc Xi:", this.Xi)
+        // console.log("postcalc Yi:", this.Yi)
+
+        // console.log("centerX:",this.centerXi,"centerY:",this.centerYi)
+        
+        // gameplayCtx.fillStyle = "red"
+        // gameplayCtx.fillRect(this.centerXi,this.centerYi,this.side,this.side)
+
+
     }
 
 }
@@ -179,6 +236,7 @@ const gameSpeed = 100
 let currentPlayer = "triangle"
 let currCannon
 let pauseState = false
+let firedFlag = false
 
 // Create 
 const triangle = new TriangleTurrent(PlayerTriXPos/scale,gameFloor,side,PlayerTriColor,"triangle")
@@ -187,32 +245,30 @@ const SqCannon = new GenerateCannon(square.centerx,square.centery)
 const TriCannon = new GenerateCannon(triangle.centerx,triangle.centery)
 
 
+
+
 //DOM CONTENT LOADED HERE
 document.addEventListener("DOMContentLoaded", function(){
     
     currentPlayerText.innerText = `Current Player: ${currentPlayer}`
-    GenerateLandscape(landscapeHeight)
 
 
-    gameplayCanvas.addEventListener("mousemove", function(e){
+
+    // gameplayCanvas.addEventListener("mousemove", function(e){
         
-        // console.log(e)
-        // MouseCurrX = e.offsetX
-        // MouseCurrY = e.offsetY
-        const rect = gameplayCanvas.getBoundingClientRect()
-        MouseCurrX = e.clientX - rect.left
-        MouseCurrY = e.clientY - rect.top 
-        // console.log(`x: ${MouseCurrX} y: ${MouseCurrY}`)
-    })
+    //     // console.log(e)
+    //     // MouseCurrX = e.offsetX
+    //     // MouseCurrY = e.offsetY
+    //     const rect = gameplayCanvas.getBoundingClientRect()
+    //     MouseCurrX = e.clientX - rect.left
+    //     MouseCurrY = e.clientY - rect.top 
+    //     // console.log(`x: ${MouseCurrX} y: ${MouseCurrY}`)
+    // })
 
 
     // const testSquare = new Turret(0,0,100,100,"black")
     // testSquare.renderTurret()
     currCannon = TriCannon
-    
-
-    const game = setInterval(gameLoop,gameSpeed)
-    
     
         document.addEventListener("keydown", function(e){
             if (pauseState === false) {
@@ -233,15 +289,8 @@ document.addEventListener("DOMContentLoaded", function(){
                     case(" "):
                         // console.log(currentPlayer)
                         // currCannon.deg -= speed
-                        
-                        playerSwitch(currentPlayer)
-                        
-                        console.log("Spacebar was pressed")
-                    break
-                    case(" "):
-                        // console.log(currentPlayer)
-                        // currCannon.deg -= speed
-                        
+                        firedFlag = true
+
                         playerSwitch(currentPlayer)
                         
                         console.log("Spacebar was pressed")
@@ -262,39 +311,39 @@ document.addEventListener("DOMContentLoaded", function(){
             }
         }
         })
+        console.log("tru.deg passed:",TriCannon.truDeg )
+        const miss = new projectile(0,0,30,45)
 
+        const game = setInterval(function(){
+            gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
+            GenerateLandscape(landscapeHeight)
+            square.renderTurret()
+            triangle.renderTurret()
+            TriCannon.renderCannon(MouseCurrX,MouseCurrY)
+            SqCannon.renderCannon(MouseCurrX,MouseCurrY)
+            
+            if (firedFlag === true) {
+                
+                miss.render()
+                // firedFlag = false
+            }
+        },gameSpeed)
 
- 
-    
-    
+        function pause(arg){
+            if (arg === true){
+                pauseState = true
+                clearInterval(game)
+            } else {
+                pauseState = false
+                setInterval(game,gameSpeed)
+            }
+           
+        }
+   
     
 })
 
 //FUNCTIONS BELOW HERE
-function pause(arg){
-    if (arg === true){
-        pauseState = true
-        clearInterval(gameLoop)
-    } else {
-        pauseState = false
-        setInterval(gameLoop,gameSpeed)
-    }
-   
-}
-
-function gameLoop(){
-    gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
-    GenerateLandscape(landscapeHeight)
-    square.renderTurret()
-    triangle.renderTurret()
-    TriCannon.renderCannon(MouseCurrX,MouseCurrY)
-    SqCannon.renderCannon(MouseCurrX,MouseCurrY)
-    const miss = new projectile(TriCannon.cannonMx,TriCannon.cannonMy,30,currCannon.truDeg)
-    miss.render()
-}
-
-
-
 function playerSwitch(cPlayer){
     if (cPlayer === "triangle") {
         currentPlayer = "square"
