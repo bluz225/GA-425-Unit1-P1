@@ -133,7 +133,7 @@ class projectile {
         // calculate new motion angle
         this.Degc = Math.atan(this.Vyf/this.Vx)
         console.log("Vx:", this.Vx, "Vyi:", this.Vyi,"Vyf:", this.Vyf, "DegC:", this.Degc)
-
+        
         //calculate vfx/vfy at t++ and set it as the next vix/viy
 
         this.Xf = this.Xi+this.Vx*this.t
