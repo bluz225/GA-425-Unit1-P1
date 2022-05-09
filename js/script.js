@@ -1,15 +1,27 @@
 //FETCH DOM ELEMENT
 const gameplayCanvas = document.querySelector("#gameplay-canvas")
+const projectileCanvas = document.querySelector("#projectile-canvas")
+const explosionCanvas = document.querySelector("#explosion-canvas")
 const menuCanvas = document.querySelector("#menu-canvas")
 const menuElements = document.querySelectorAll(".menu")
 const gameplayElements = document.querySelectorAll(".gameplay")
 const startButton = document.querySelector("#start-Button")
 const gameplayCtx = gameplayCanvas.getContext("2d")
+const projectileCtx = projectileCanvas.getContext("2d")
+const explosionCtx = explosionCanvas.getContext("2d")
+
+
 const currentPlayerText = document.querySelector("#current-Player")
 
 // CANVAS SETUP
 gameplayCanvas.setAttribute("height", getComputedStyle(gameplayCanvas)["height"])
 gameplayCanvas.setAttribute("width", getComputedStyle(gameplayCanvas)["width"])
+
+projectileCanvas.setAttribute("height", getComputedStyle(projectileCanvas)["height"])
+projectileCanvas.setAttribute("width", getComputedStyle(projectileCanvas)["width"])
+
+explosionCanvas.setAttribute("height", getComputedStyle(explosionCanvas)["height"])
+explosionCanvas.setAttribute("width", getComputedStyle(explosionCanvas)["width"])
 
 //CLASS SETUP
 class GenerateCannon{
@@ -86,7 +98,7 @@ class GenerateCannon{
         this.truDeg = 180
 
     }
-    console.log("tru deg:",this.truDeg)
+    // console.log("tru deg:",this.truDeg)
     // console.log("x:", cannonMx,"y:", this.cannonMy,"deg:", this.deg, "rad:", rad)
     // console.log("hypon:", Math.sqrt(Math.pow(cannonMx,2)+Math.pow(this.cannonMy,2)))
     cannon.closePath()
@@ -159,8 +171,8 @@ class projectile {
         missile.lineTo(missileXYf[0], missileXYf[1])
         
         missile.closePath()
-        gameplayCtx.strokeStyle = "red"
-        gameplayCtx.stroke(missile)
+        projectileCtx.strokeStyle = "red"
+        projectileCtx.stroke(missile)
 
         // calculate new motion angle
         // this.Vyf = this.Vyi+grav*this.t
@@ -239,7 +251,7 @@ const gameFloor = (gameplayCanvasHeight-side-landscapeHeight)
 let MouseCurrX = 0
 let MouseCurrY = 0
 const pi = Math.PI
-const gameSpeed = 128 // 60pfs is 16
+const gameSpeed = 32 // 60pfs is 16
 let currentPlayer = "triangle"
 let currCannon
 let pauseState = false
@@ -259,8 +271,9 @@ const SqShot = new projectile(SqCannon.cannonMx,SqCannon.cannonMy,projSpeed,SqCa
 
 //DOM CONTENT LOADED HERE
 document.addEventListener("DOMContentLoaded", function(){
-
+    // grab height of the landscape
     
+
     currentPlayerText.innerText = `Current Player: ${currentPlayer}`
     
     const game = setInterval(function(){
@@ -268,13 +281,19 @@ document.addEventListener("DOMContentLoaded", function(){
         GenerateLandscape(landscapeHeight)
         square.renderTurret()
         triangle.renderTurret()
+        // grab current position of the tanks 
+
         TriCannon.renderCannon(MouseCurrX,MouseCurrY)
         SqCannon.renderCannon(MouseCurrX,MouseCurrY)
         
         if (firedFlag === true) {
-            
             TriShot.render(TriCannon.cannonMx, TriCannon.cannonMy,TriCannon.truDeg,TriCannon.dir)
-            // firedFlag = false
+            // if (currentPlayer === "triangle") {
+            //     TriShot.render(TriCannon.cannonMx, TriCannon.cannonMy,TriCannon.truDeg,TriCannon.dir)
+            // } else {
+            //     SqShot.render(SqCannon.cannonMx, SqCannon.cannonMy,SqCannon.truDeg,SqCannon.dir)
+            // }
+            // detect Collission Code here
         }
     },gameSpeed)
 
