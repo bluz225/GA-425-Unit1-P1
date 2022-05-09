@@ -21,11 +21,14 @@ class GenerateCannon{
         this.truDeg = 0
         this.cannonMx = 0
         this.cannonMy = 0
+
     }
 
     renderCannon(mouseX,mouseY){
         if (this.originX > centerline) {
             this.dir = -1
+        } else {
+            this.dir = 1
         }
     let cannonLength = 45*scale
     let rad = 0
@@ -39,23 +42,25 @@ class GenerateCannon{
 
 
     if (this.deg < 90) {
-        rad = convertDegtoRad(this.deg)
-        this.cannonMx = this.originX+cannonLength*Math.cos(rad)*this.dir
-        this.cannonMy = this.originY-cannonLength*Math.sin(rad)  
+        rad = convertDegtoRad(this.deg) 
+        const XY = generateAngledLineXY(this.originX,this.originY,cannonLength,rad,this.dir)
         cannon.moveTo(this.originX, this.originY)
-        cannon.lineTo(this.cannonMx, this.cannonMy)
-        this.truDeg = this.deg
+        cannon.lineTo(XY[0], XY[1])
+        this.truDeg = convertRadtoDeg(rad)
+        this.cannonMx = XY[0]
+        this.cannonMy = XY[1]
+
         // this.truDeg = this.deg
         // console.log("<90 degree", this.truDeg)
 
     } else if (this.deg > 90){
-        rad = convertDegtoRad(this.deg-90)
-        this.cannonMx = this.originX-cannonLength*Math.sin(rad)*this.dir
-        this.cannonMy = this.originY-cannonLength*Math.cos(rad)
+        rad = convertDegtoRad(this.deg) 
+        const XY = generateAngledLineXY(this.originX,this.originY,cannonLength,rad,this.dir)
         cannon.moveTo(this.originX, this.originY)
-        cannon.lineTo(this.cannonMx, this.cannonMy)
-        this.truDeg = this.deg
-
+        cannon.lineTo(XY[0], XY[1])
+        this.truDeg = convertRadtoDeg(rad)
+        this.cannonMx = XY[0]
+        this.cannonMy = XY[1]
         // this.truDeg = this.truDeg + convertRadtoDeg(rad)
         // console.log(">90 degree", this.truDeg)
 
@@ -81,7 +86,7 @@ class GenerateCannon{
         this.truDeg = 180
 
     }
-    // console.log("tru deg:",this.truDeg)
+    console.log("tru deg:",this.truDeg)
     // console.log("x:", cannonMx,"y:", this.cannonMy,"deg:", this.deg, "rad:", rad)
     // console.log("hypon:", Math.sqrt(Math.pow(cannonMx,2)+Math.pow(this.cannonMy,2)))
     cannon.closePath()
@@ -92,88 +97,91 @@ class GenerateCannon{
 }
 
 class projectile {
-    constructor(Xi,Yi,Vi,Deg){
-        this.side = 10
+    constructor(Xi,Yi,Vi,Deg,dir){
+        this.length = 10
         this.t = 0
-        this.Vi = 500
+        this.Vi = Vi
         this.Vx = 0
         this.Vyi = 0
         this.Vyf = 0
-        this.Degi = 89
-        this.Degc = 89
+        this.Degi = Deg
         this.Xi = Xi
         this.Xf
         this.Yi = Yi
         this.Yf 
-
-
-        this.centerXi = this.Xi - this.side/2
-        this.centerYi = this.Yi - this.side/2
-        // this.centerXf = 0
-        // this.centerYf = 0
+        this.dir = dir
+        this.hit = false
 
     }
 
-    render(){
-        let projScale = 0.001
-        // this.t = this.t*projScale
-        if (this.t === 0){
+    render(Xi,Yi,deg,dir){
+        
+        let projScale = 1
+        let missile = new Path2D()
+        grav = 9.81
+        let tStep = 1
+
+        console.log("vi:", this.Vi)
+        
+        // set intial settings at time 0
+        if (this.t === 0) {
+            
+            this.Degi = deg
+            this.dir = dir
+            this.Xi = Xi
+            this.Yi = Yi
             this.Degi = convertDegtoRad(this.Degi)
-            this.Degc = convertDegtoRad(this.Degc)
-            // console.log("converted i and c:",this.Degi,this.Degc)
+            console.log("unconv Deg i:", this.Degi, "conv Deg i", convertRadtoDeg(this.Degi))
+            this.Vx = this.Vi*Math.cos(this.Degi)*this.dir
+
         }
-        // calculate initial Vix and Viy
-        this.Vx = this.Vi*Math.cos(this.Degi)
-        this.Vyi = this.Vi*Math.sin(this.Degi)
-        this.Vyf = this.Vyi-grav*this.t
-        
-
-        console.log("proj t:",this.t)
-
-        // calculate new motion angle
-        this.Degc = Math.atan(this.Vyf/this.Vx)
-        console.log("Vx:", this.Vx, "Vyi:", this.Vyi,"Vyf:", this.Vyf, "DegC:", this.Degc)
-        
-        //calculate vfx/vfy at t++ and set it as the next vix/viy
-
-        this.Xf = this.Xi+this.Vx*this.t
-        this.Yf = this.Yi+this.Vyi*this.t-grav*Math.pow(this.t,2)/2
-        // this.Yf = this.Yi+()
-        
+        // starts rendering missile
+        console.log("Vx:", this.Vx, "Vyi:", this.Vyi,"Vyf:", this.Vyf, "Degi:", this.Degi)
         console.log("Xi:", this.Xi, "Xf:", this.Xf)
         console.log("Yi:", this.Yi, "Yf:", this.Yf, "YDetla:", this.Yf-this.Yi)
+
+        // draws starting point of missile (back of missile)
+        missile.moveTo(this.Xi, this.Yi)
+        console.log("proj t:",this.t)
+        // console.log("unconv Deg i:", this.Degi, "conv Deg i", convertRadtoDeg(this.Degi))
+
+        console.log("tri Xi",this.Xi,"tri Yi",this.Yi)
         
+        // calculate initial Vix and Viy
+        
+        this.Vyi = -1*this.Vi*Math.sin(this.Degi)+grav*this.t
+        
+        // iterate time step
+        this.t = this.t + 0.01
+        console.log("proj t+t:",this.t)
+
+        let missileXYf = generateAngledLineXY(this.Xi,this.Yi,this.length,this.Degi,this.dir)
+        missile.lineTo(missileXYf[0], missileXYf[1])
+        
+        missile.closePath()
+        gameplayCtx.strokeStyle = "red"
+        gameplayCtx.stroke(missile)
+
+        // calculate new motion angle
+        // this.Vyf = this.Vyi+grav*this.t
+        this.Vyf = this.Vyi
+        
+
+        this.Xf = (this.Xi+this.Vx*this.t)
+        this.Yf = (this.Yi+this.Vyi*this.t+grav*Math.pow(this.t,2)/2)
+        
+        this.Degi = Math.atan(-1*this.Vyi/this.Vx)
+        Math.abs()
+        this.Vi = Math.sqrt(Math.pow(this.Vyf,2)+Math.pow(this.Vx,2))
+
         this.Xi = this.Xf
         this.Yi = this.Yf
-        this.Vyi = this.Vyf
-
-        // this.t = this.t + gameSpeed/1000
-        this.t++
-
-        // console.log("deg:", this.Deg)
-        
-        // console.log("Vix:", this.Vix)
-
-        
-        // this.Vi = Math.sqrt(Math.pow(this.Vix,2)-Math.pow(this.Viy,2))
-        // console.log("postcalc Vi:", this.Vi)
-        
-        // this.Deg = Math.atan(this.Viy/this.Vix)
-        // this.Xi = this.Vi*Math.cos(this.Deg)*this.t
-        // this.Yi = this.Vi*Math.sin(this.Deg)-grav*Math.pow(this.t,2)
-        // console.log("postcalc Xi:", this.Xi)
-        // console.log("postcalc Yi:", this.Yi)
-
-        // console.log("centerX:",this.centerXi,"centerY:",this.centerYi)
-        
-        // gameplayCtx.fillStyle = "red"
-        // gameplayCtx.fillRect(this.centerXi,this.centerYi,this.side,this.side)
-
 
     }
 
 }
 
+// class Turret with square default
 class Turret {
     constructor(x,y,side,color,shape){
         this.shape = shape
@@ -187,9 +195,7 @@ class Turret {
     }
 
     renderTurret(){
-        // gameplayCtx.fillStyle = this.color
-        // gameplayCtx.fillRect(this.x,this.y, this.side,this.side)
-    
+        // render square
         gameplayCtx.strokeStyle = this.color
         gameplayCtx.strokeRect(this.x,this.y, this.side,this.side)
     }
@@ -202,22 +208,23 @@ class TriangleTurrent extends Turret{
     }
 
     renderTurret(){
+        // draw triangle lines
         let triangle = new Path2D()
         triangle.moveTo(this.side/2+this.x, 0+this.y)
         triangle.lineTo(this.side+this.x, this.side+this.y)
         triangle.lineTo(0+this.x, this.side+this.y)
         triangle.closePath();
-    
+        
+        // render triangle drawn
         gameplayCtx.strokeStyle = this.color
         gameplayCtx.stroke(triangle)
-
 
     }
 }
 
 // GLOBAL VARIABLES
 const scale = 1
-const grav = 9.81
+let grav = 9.81
 let menufront = true
 let gameplayCanvasHeight = gameplayCanvas.height
 let gameplayCanvasWidth = gameplayCanvas.width
@@ -232,25 +239,44 @@ const gameFloor = (gameplayCanvasHeight-side-landscapeHeight)
 let MouseCurrX = 0
 let MouseCurrY = 0
 const pi = Math.PI
-const gameSpeed = 100
+const gameSpeed = 128 // 60pfs is 16
 let currentPlayer = "triangle"
 let currCannon
 let pauseState = false
 let firedFlag = false
+let projSpeed = 100
 
-// Create 
+// Create objects
 const triangle = new TriangleTurrent(PlayerTriXPos/scale,gameFloor,side,PlayerTriColor,"triangle")
 const square = new Turret(PlayerSqXPos/scale,gameFloor,side,PlayerSqColor,"square")
 const SqCannon = new GenerateCannon(square.centerx,square.centery)
 const TriCannon = new GenerateCannon(triangle.centerx,triangle.centery)
+const TriShot = new projectile(TriCannon.cannonMx,TriCannon.cannonMy,projSpeed,TriCannon.truDeg,TriCannon.dir)
+const SqShot = new projectile(SqCannon.cannonMx,SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
 
 
 
 
 //DOM CONTENT LOADED HERE
 document.addEventListener("DOMContentLoaded", function(){
+
     
     currentPlayerText.innerText = `Current Player: ${currentPlayer}`
+    
+    const game = setInterval(function(){
+        gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
+        GenerateLandscape(landscapeHeight)
+        square.renderTurret()
+        triangle.renderTurret()
+        TriCannon.renderCannon(MouseCurrX,MouseCurrY)
+        SqCannon.renderCannon(MouseCurrX,MouseCurrY)
+        
+        if (firedFlag === true) {
+            
+            TriShot.render(TriCannon.cannonMx, TriCannon.cannonMy,TriCannon.truDeg,TriCannon.dir)
+            // firedFlag = false
+        }
+    },gameSpeed)
 
 
 
@@ -312,22 +338,10 @@ document.addEventListener("DOMContentLoaded", function(){
         }
         })
         console.log("tru.deg passed:",TriCannon.truDeg )
-        const miss = new projectile(0,0,30,45)
+        
 
-        const game = setInterval(function(){
-            gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
-            GenerateLandscape(landscapeHeight)
-            square.renderTurret()
-            triangle.renderTurret()
-            TriCannon.renderCannon(MouseCurrX,MouseCurrY)
-            SqCannon.renderCannon(MouseCurrX,MouseCurrY)
-            
-            if (firedFlag === true) {
-                
-                miss.render()
-                // firedFlag = false
-            }
-        },gameSpeed)
+
+        
 
         function pause(arg){
             if (arg === true){
@@ -357,7 +371,16 @@ function playerSwitch(cPlayer){
 
     }
 }
-
+//outputs X and Y coordinates of line end based on origin XY requested length and degrees in radians
+//using right angle geomtry formulas
+// also takes into account left and right direction (-1 = left, 1 = right)
+function generateAngledLineXY(oX,oY,l,rad,dir){
+    let Xf = 0
+    let Yf = 0
+    Xf = oX + l*Math.cos(rad)*dir
+    Yf = oY - l*Math.sin(rad)
+    return [Xf, Yf]
+}
 
 function convertRadtoDeg(rad){
     return rad*180/pi
@@ -390,7 +413,24 @@ function revertY(convertedheight) {
 
 
 function collisionDetection(){
+    //Axis Aligned bounding box collisional algorithm
+    // AABB Colision Detection
+    const hitLeft = TriShot.x + missile.width >= gameFloor
+    // console.log("ogre left:", ogreLeft)
+    const hitRight = TriShot.x <= ogre.x + ogre.width
+    // console.log("ogre Right:", ogreRight)
+    const hitTop = TriShot.y + hero.height >= ogre.y
+    // console.log("ogre Top:", ogreTop)
+    const hitBot = TriShot.y <= ogre.y + ogre.height
+    // console.log("ogre Top:", ogreTop)
 
+    if (hitLeft === true && hitRight===true && hitTop === true && hitBot === true) {
+        // console.log("hit")
+        ogre.alive = false
+        movementDisplay.innerText= "you killed Shrek! Who is the monster now?"
+        clearInterval(gameLoopInterval)
+
+    }
 }
 
 function screenSwitch() {
