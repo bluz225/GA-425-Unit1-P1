@@ -197,13 +197,12 @@ class Turret {
 class TriangleTurrent extends Turret{
     constructor(x,y,side,color){
         super(x,y,side,color)
-
     }
 
     renderTurret(){
         // draw triangle lines
         let triangle = new Path2D()
-        triangle.moveTo(this.side/2+this.x, 0+this.y)
+        triangle.moveTo(this.side/2+this.x, gameFloor+this.side)
         triangle.lineTo(this.side+this.x, this.side+this.y)
         triangle.lineTo(0+this.x, this.side+this.y)
         triangle.closePath();
@@ -235,7 +234,7 @@ let PlayerTriColor = "black"
 let PlayerSqXPos = 1300*scale
 let PlayerSqColor = PlayerTriColor
 const landscapeHeight = 100*scale
-const gameFloor = (gameplayCanvasHeight-side-landscapeHeight)
+const gameFloor = landscapeHeight
 let MouseCurrX = 0
 let MouseCurrY = 0
 const pi = Math.PI
@@ -254,16 +253,27 @@ const triangle = new TriangleTurrent(PlayerTriXPos/scale,gameFloor,side,PlayerTr
 const square = new Turret(PlayerSqXPos/scale,gameFloor,side,PlayerSqColor,"square")
 const SqCannon = new GenerateCannon(square.centerx,square.centery)
 const TriCannon = new GenerateCannon(triangle.centerx,triangle.centery)
-const TriShot = new projectile(TriCannon.cannonMx,TriCannon.cannonMy,0,TriCannon.truDeg,TriCannon.dir)
+const TriShot = new projectile()
 const SqShot = new projectile(SqCannon.cannonMx,SqCannon.cannonMy,0,SqCannon.truDeg,SqCannon.dir)
 const hitBoxArr = ["","",""]
 
-
-
-
 //DOM CONTENT LOADED HERE
 document.addEventListener("DOMContentLoaded", function(){
-    // grab height of the landscape
+    // reset origins of all canvas to normal Cartisian coordinate system (origin at bottom left)
+    gameplayCtx.translate(0,gameplayCanvas.height)
+    gameplayCtx.scale(1,-1)
+    gameplayCtx.save()
+
+    projectileCtx.translate(0,projectileCanvas.height)
+    projectileCtx.scale(1,-1)
+    projectileCtx.save()
+    
+    explosionCtx.translate(0,explosionCanvas.height)
+    explosionCtx.scale(1,-1)
+    explosionCtx.save()
+
+
+
 
     currCannon = TriCannon
     const game = setInterval(function gameLoop() {
@@ -522,7 +532,7 @@ function convertDegtoRad(deg){
 // generates intial landscape
 function GenerateLandscape(height){
     gameplayCtx.fillStyle = "green"
-    gameplayCtx.fillRect(0,gameplayCanvasHeight-height, gameplayCanvasWidth,height)
+    gameplayCtx.fillRect(0,0, gameplayCanvasWidth,height)
 }
 
 
