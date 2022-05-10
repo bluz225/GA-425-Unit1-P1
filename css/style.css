@@ -6,6 +6,7 @@
     " a . b"
     " c c c"
     ;
+    max-height: 100vh;
 }
 
 #current-Player {
@@ -69,7 +70,8 @@ position: relative;
 
 
 body {
-    /* display: grid; */
+    width: 100em;
+    max-height: 100vh;
 
 }
 
