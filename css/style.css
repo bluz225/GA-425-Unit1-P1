@@ -1,5 +1,23 @@
+.screen-container {
+    display: grid;
+    grid-template-rows: .25fr .5fr .25fr;
+    grid-template-rows: .25fr .5fr .25fr;
+    grid-template-areas: 
+    " a . b"
+    " c c c"
+    ;
+}
+
+#current-Player {
+    grid-area: a;
+}
+
+#gamePlayStatus{
+    grid-area: b;
+}
 
 #gameplay-canvas {
+    grid-area: c;
     width: 100em;
     height: 70vh;
     background-color: gray;
@@ -8,12 +26,13 @@
     margin: 0 auto;
 
     z-index: 0;
-    position: absolute;
+    /* position: absolute; */
     top: 0;
     left: 0;
 }
 
 #projectile-canvas {
+    grid-area: c;
     width: 100em;
     height: 70vh;
     /* background-color: white; */
@@ -22,12 +41,13 @@
     margin: 0 auto;
 
     z-index: 1;
-    position: absolute;
+    /* position: absolute; */
     top: 0;
     left: 0;
 }
 
 #explosion-canvas {
+    grid-area: c;
     width: 100em;
     height: 70vh;
     /* background-color: white; */
@@ -36,7 +56,7 @@
     margin: 0 auto;
 
     z-index: -1;
-    position: absolute;
+    /* position: absolute; */
     top: 0;
     left: 0;
 }
