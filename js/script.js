@@ -1,3 +1,6 @@
+
+
+
 //FETCH DOM ELEMENTS
 const menuCanvas = document.querySelector("#menu-canvas")
 const menuElements = document.querySelectorAll(".menu")
@@ -34,14 +37,16 @@ class GenerateCannon{
     }
 
     renderCannon(mouseX,mouseY){
-        if (this.originX > centerline) {
-            this.dir = -1
-        } else {
-            this.dir = 1
-        }
+
     let cannonLength = 45*scale
     let rad = 0
     let cannon = new Path2D()
+
+    if (this.originX > centerline) {
+        this.dir = -1
+    } else {
+        this.dir = 1
+    }
     
     if (this.deg < 0) {
         this.deg = 0
@@ -95,11 +100,8 @@ class GenerateCannon{
         this.truDeg = 180
 
     }
-    // console.log("tru deg:",this.truDeg)
-    // console.log("x:", cannonMx,"y:", this.cannonMy,"deg:", this.deg, "rad:", rad)
-    // console.log("hypon:", Math.sqrt(Math.pow(cannonMx,2)+Math.pow(this.cannonMy,2)))
+
     cannon.closePath()
-    // gameplayCtx.strokeStyle = this.color
     gameplayCtx.stroke(cannon)
     }
 
@@ -107,7 +109,7 @@ class GenerateCannon{
 
 class projectile {
     constructor(Xi,Yi,Vi,Deg,dir){
-        this.length = 20
+        this.length = 10
         this.t = 0
         this.Vi = Vi
         this.Vx = 0
@@ -123,15 +125,20 @@ class projectile {
 
     }
 
-    render(Xi,Yi,Vi,deg,dir){
-        
-        let projScale = 1
+    render(Xi,Yi,length,degreeRad,direction,color){
         let missile = new Path2D()
-        grav = 9.81
-        let tStep = 1
+        missile.moveTo(Xi, Yi)
+        const missileXYf = generateAngledLineXY(Xi,Yi,length,degreeRad,direction)
+        missile.lineTo(missileXYf[0], missileXYf[1])
+        missile.closePath()
+        projectileCtx.strokeStyle = color
+        projectileCtx.stroke(missile)
+    }
 
-        // console.log("vi:", this.Vi)
-        
+    projectileMove(Xi,Yi,Vi,deg,dir){
+        // let missile = new Path2D()
+        let tStep = 0.01
+      
         // set intial settings at time 0
         if (this.t === 0) {
             this.Vi = Vi
@@ -140,51 +147,21 @@ class projectile {
             this.Xi = Xi
             this.Yi = Yi
             this.Degi = convertDegtoRad(this.Degi)
-            // console.log("unconv Deg i:", this.Degi, "conv Deg i", convertRadtoDeg(this.Degi))
             
             // calculate initial x velocity, this does not change in projectile motion
             this.Vx = this.Vi*Math.cos(this.Degi)*this.dir
-
         }
-       
-        // console.log("Vx:", this.Vx, "Vyi:", this.Vyi,"Vyf:", this.Vyf, "Degi:", this.Degi)
-        // console.log("Xi:", this.Xi, "Xf:", this.Xf)
-        // console.log("Yi:", this.Yi, "Yf:", this.Yf, "YDetla:", this.Yf-this.Yi)
-        
-        // starts rendering missile
-        // draws starting point of missile (back of missile)
-        missile.moveTo(this.Xi, this.Yi)
-        // console.log("proj t:",this.t)
-        // console.log("unconv Deg i:", this.Degi, "conv Deg i", convertRadtoDeg(this.Degi))
 
-        // console.log("tri Xi",this.Xi,"tri Yi",this.Yi)
-        
-        // calculate initial y velocity
-        
         this.Vyi = -1*this.Vi*Math.sin(this.Degi)+grav*this.t
-        
+        this.render(this.Xi,this.Yi,this.length,this.Degi,this.dir,"red")
         // iterate time step
-        this.t = this.t + 0.01
-        // console.log("proj t+t:",this.t)
-
-        let missileXYf = generateAngledLineXY(this.Xi,this.Yi,this.length,this.Degi,this.dir)
-        missile.lineTo(missileXYf[0], missileXYf[1])
-        
-        missile.closePath()
-        projectileCtx.strokeStyle = "red"
-        projectileCtx.stroke(missile)
-
-        // calculate new motion angle
-        // this.Vyf = this.Vyi+grav*this.t
+        this.t = this.t + tStep
+        //Calculate and assign next step projectile motion parameters
         this.Vyf = this.Vyi
-
         this.Xf = (this.Xi+this.Vx*this.t)
         this.Yf = (this.Yi+this.Vyi*this.t+grav*Math.pow(this.t,2)/2)
-        
         this.Degi = Math.atan(-1*this.Vyi/this.Vx)
-
         this.Vi = Math.sqrt(Math.pow(this.Vyf,2)+Math.pow(this.Vx,2))
-
         this.Xi = this.Xf
         this.Yi = this.Yf
     }
@@ -283,13 +260,62 @@ const hitBoxArr = ["","",""]
 
 
 
+
 //DOM CONTENT LOADED HERE
 document.addEventListener("DOMContentLoaded", function(){
     // grab height of the landscape
 
+    currCannon = TriCannon
+    const game = setInterval(function gameLoop() {
+        if (pauseState === false){
+            hitBoxArr[0] = {
+                top: revertY(landscapeHeight),
+                left: 0,
+                right: gameplayCanvasWidth,
+                name: "land"
+            }
     
-    const game = setInterval(gameLoop,gameSpeed)
-  
+    
+    
+    
+            currentPlayerText.innerText = `Current Player: ${currentPlayer}`
+    
+    
+            gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
+            GenerateLandscape(landscapeHeight)
+            square.renderTurret()
+    
+            // console.log("hitboxArr:",hitBoxArr)
+            triangle.renderTurret()
+            // grab current position of the tanks 
+    
+            TriCannon.renderCannon(MouseCurrX,MouseCurrY)
+            SqCannon.renderCannon(MouseCurrX,MouseCurrY)
+            TriShot.render(TriCannon.cannonMx,TriCannon.cannonMy,0,0,0,"black")
+            projectileCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
+            if (firedFlag === true && collisionFlag === false) {
+                console.log("fired flag", firedFlag)
+                console.log("collision flag",collisionFlag)
+                console.log("currentPlayer:", currentPlayer)
+                if (currentPlayer === "triangle") {
+                    console.log("Triangle fired")
+                    TriShot.projectileMove(TriCannon.cannonMx, TriCannon.cannonMy,projSpeed,TriCannon.truDeg,TriCannon.dir)
+                    collisionDetection(TriShot.Xi,TriShot.Yi)
+                    // pauseState = true 
+                    
+                            
+                } else if (currentPlayer === "square"){
+                    console.log("Square fired")
+                    SqShot.render(SqCannon.cannonMx, SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
+                    collisionDetection(SqShot.Xi,SqShot.Yi)
+                    // pauseState = true    
+                    
+                }
+    
+            }
+        }
+    },gameSpeed)
+    
 
 
 
@@ -370,59 +396,11 @@ function drawExplosion(x,y){
     // let expl = new Path2D()
     explosionCtx.beginPath()
     explosionCtx.arc(x,y,5,0,2*pi)
+    explosionCtx.closePath()
     explosionCtx.fill()
-    explosionCanvas.classList.add()
+    explosionCanvas.style.zIndex = "3"
 }
 
-
-function gameLoop() {
-    if (pauseState === false){
-        hitBoxArr[0] = {
-            top: revertY(landscapeHeight),
-            left: 0,
-            right: gameplayCanvasWidth,
-            name: "land"
-        }
-
-
-
-
-        currentPlayerText.innerText = `Current Player: ${currentPlayer}`
-
-
-        gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
-        GenerateLandscape(landscapeHeight)
-        square.renderTurret()
-
-        // console.log("hitboxArr:",hitBoxArr)
-        triangle.renderTurret()
-        // grab current position of the tanks 
-
-        TriCannon.renderCannon(MouseCurrX,MouseCurrY)
-        SqCannon.renderCannon(MouseCurrX,MouseCurrY)
-
-        projectileCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
-        if (firedFlag === true && collisionFlag === false) {
-            console.log("fired flag", firedFlag)
-            console.log("collision flag",collisionFlag)
-            console.log("currentPlayer:", currentPlayer)
-            if (currentPlayer === "triangle") {
-                console.log("Triangle fired")
-                TriShot.render(TriCannon.cannonMx, TriCannon.cannonMy,projSpeed,TriCannon.truDeg,TriCannon.dir)
-                collisionDetection(TriShot.Xi,TriShot.Yi)
-                // pauseState = true 
-                        
-            } else if (currentPlayer === "square"){
-                console.log("Square fired")
-                SqShot.render(SqCannon.cannonMx, SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
-                collisionDetection(SqShot.Xi,SqShot.Yi)
-                // pauseState = true    
-                
-            }
-
-        }
-    }
-}
 
 // detect collision with something and stops the setInterval (WIP)
 // renders explosions.(WIP)
@@ -466,7 +444,13 @@ function collisionDetection(Xf,Yf){
                 
             }
             projectileCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
-            drawExplosion(Xf,Xf)
+            setTimeout(function explosionInterval(){
+                drawExplosion(TriShot.Xi-60,TriShot.Yi-60)
+            },1000)
+            explosionCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
+            playerSwitch(currentPlayer)
+            
+            
             // playerSwitch(currentPlayer)
             // clearInterval(game)
             
