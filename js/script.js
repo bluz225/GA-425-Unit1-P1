@@ -32,6 +32,51 @@ winCanvas.setAttribute("height", getComputedStyle(winCanvas)["height"])
 winCanvas.setAttribute("width", getComputedStyle(winCanvas)["width"])
 
 //CLASS SETUP
+class generateGUI {
+    constructor(x,y,ctx){
+        this.x = x
+        this.y = y
+        this.ctx = ctx
+    }
+}
+
+class AngleHUD extends generateGUI {
+    constructor(x,y,diameter,ctx){
+        super(x,y,ctx)
+        this.diameter = diameter
+        this.lastAng = 0
+    }
+    
+    render(){
+        let innerRadius = this.diameter/2+10
+        let HUDthickness = 10
+        let outerRadius = innerRadius + HUDthickness
+        // console.log(this.ctx)
+        this.ctx.beginPath()
+        // this.ctx.moveTo(this.x+innerRadius,this.y)
+        // this.ctx.lineTo(this.x+outerRadius,this.y)
+        this.ctx.moveTo(this.x+outerRadius,this.y)
+        this.ctx.arcTo(this.x,this.y+outerRadius,this.x+outerRadius,this.y+outerRadius,outerRadius)
+        // this.ctx.arc(this.x,this.y,outerRadius,0,pi)
+
+        // this.ctx.moveTo(this.x-outerRadius,this.y)
+        // this.ctx.lineTo(this.x-innerRadius,this.y)
+        // this.ctx.arc(this.x,this.y,innerRadius,0,pi)
+        // this.ctx.moveTo(this.x-innerRadius,this.y)
+        // this.ctx.lineTo(this.x-outerRadius,this.y)
+        // this.ctx.arcTo(this.x+innerRadius,this.y,this.x-innerRadius,this.y,innerRadius)
+        // this.ctx.closePath()
+        
+        this.ctx.stroke()
+    }
+
+    update(){
+
+    }
+}
+
+
+
 class GenerateCannon{
     constructor(originX,originY){
         this.originX = originX
@@ -262,8 +307,9 @@ let menuFront = true
 let winscreenFront = false
 let gameplayZindex = 1
 let explosionsZindex = 2
-let menuZindex = 3 // in use
-let winscreenZindex = 4
+let guiZindex = 3
+let menuZindex = 4 // in use
+let winscreenZindex = 5 // in use
 const hitBoxArr = ["","","",""]
 
 // Create objects
@@ -273,7 +319,7 @@ let SqCannon = new GenerateCannon(square.centerx,square.centery)
 let TriCannon = new GenerateCannon(triangle.centerx,triangle.centery)
 let TriShot = new projectile(TriCannon.cannonMx,TriCannon.cannonMy,projSpeed,TriCannon.truDeg,TriCannon.dir)
 let SqShot = new projectile(SqCannon.cannonMx,SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
-
+let TriAngleHUD = new AngleHUD(triangle.centerx,triangle.centery,side,gameplayCtx)
 
 
 //DOM CONTENT LOADED HERE
@@ -414,6 +460,7 @@ function gameLoop() {
         GenerateLandscape(landscapeHeight)
         square.renderTurret()
         triangle.renderTurret()
+        TriAngleHUD.render()
         TriCannon.renderCannon(MouseCurrX,MouseCurrY)
         SqCannon.renderCannon(MouseCurrX,MouseCurrY)     
                 

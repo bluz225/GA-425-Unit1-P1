@@ -5,6 +5,8 @@ GA 425 Unit 1 Project 1 Repo
 -   Initial Description: Gunbound-clone with modifications (tbd)
 -   Detailed Description: Two players will spawn in their own turrets and take turns firing at each other. First one to hit the other wins. Be forewarned, this game is not as simple as it appears.
 ---
+[GunShapes game link](https://bluz225.github.io/GA-425-Unit1-P1/)
+---
 ## Wireframes:
 
 ### Start Menu: Wire Frame 1
