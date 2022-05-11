@@ -6,6 +6,7 @@ const startButton = document.querySelector("#start-Button")
 
 const returnMenuDiv = document.createElement("div")
 const currentPlayerDiv = document.createElement("div")
+const replayDiv = document.createElement("div")
 
 
 
@@ -626,12 +627,24 @@ function winscreenHandler(){
         gameplayMenu.firstChild.remove()
     }
 
-    returnMenuDiv.innerText = "Play Another Game"
+    replayDiv.innerText = "Play Another Game"
+    replayDiv.classList.add("start-ReturnMenu")
+    replayDiv.addEventListener("click", function(){
+        winCanvas.style.zIndex = winscreenZindex*-1
+        menuFront = false
+        MenuGameplaySwitchHandler()
+        reset()
+        
+    })
+    gameplayMenu.append(replayDiv)
+
+
+    returnMenuDiv.innerText = "Return to Menu"
     returnMenuDiv.classList.add("start-ReturnMenu")
 
     returnMenuDiv.addEventListener("click", function(){
         winCanvas.style.zIndex = winscreenZindex*-1
-        menuFront = false
+        menuFront = true
         MenuGameplaySwitchHandler()
         reset()
         
