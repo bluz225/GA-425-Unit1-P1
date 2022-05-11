@@ -36,8 +36,8 @@ GA 425 Unit 1 Project 1 Repo
 #### Game Play 
 -   show current player
 -   generate and render player 1 and player 2 as chosen "turret" shapes/assets
--   implement a barrel that goes from center of the turret to the mouse
--   fires on mouse click from barrel opening
+-   implement a barrel that is controlled by w s / up and down arrow
+-   fires on space bar click from barrel opening
 -   implement turn switching
 -   generate flat landscape
 -   generate a projectile when fired and show projectile motion
