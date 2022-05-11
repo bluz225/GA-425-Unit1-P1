@@ -1,27 +1,28 @@
+#gui-canvas{
+    width: 100em;
+    height: 70vh;
+    /* background-color: black; */
+    margin: 0 auto;
+    position: absolute;
+}
+
 #win-canvas {
     width:60em;
     height: 50vh;
-    
     background-color: red;
-
     margin: 0 auto;
     position: absolute;
     top: 10vh;
-    /* top: 0;
-    left: 0; */
 }
 
 
 #menu-canvas {
     width: 100em;
     height: 70vh;
-    
     background-color: black;
-
     margin: 0 auto;
     position: absolute;
-    /* top: 0;
-    left: 0; */
+
 }
 
 body {

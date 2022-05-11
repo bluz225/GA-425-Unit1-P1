@@ -195,6 +195,7 @@ class Turret {
             top: this.y,
             left: this.x,
             right: this.x+this.side,
+            bottom: this.y-this.side,
             name: "square"
         }
     }
@@ -221,6 +222,7 @@ class TriangleTurrent extends Turret{
             top: this.y,
             left: this.x,
             right: this.x+this.side,
+            bottom: this.y-this.side,
             name: "triangle"
         }
 
@@ -262,6 +264,7 @@ let gameplayZindex = 1
 let explosionsZindex = 2
 let menuZindex = 3 // in use
 let winscreenZindex = 4
+const hitBoxArr = ["","","",""]
 
 // Create objects
 let triangle = new TriangleTurrent(PlayerTriXPos/scale,gameFloor,side,PlayerTriColor,"triangle")
@@ -271,7 +274,7 @@ let TriCannon = new GenerateCannon(triangle.centerx,triangle.centery)
 let TriShot = new projectile(TriCannon.cannonMx,TriCannon.cannonMy,projSpeed,TriCannon.truDeg,TriCannon.dir)
 let SqShot = new projectile(SqCannon.cannonMx,SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
 
-const hitBoxArr = ["","",""]
+
 
 //DOM CONTENT LOADED HERE
 document.addEventListener("DOMContentLoaded", function(){
@@ -279,13 +282,7 @@ document.addEventListener("DOMContentLoaded", function(){
     
     MenuGameplaySwitchHandler("menu")
     
-    gameplayCtx.translate(0,gameplayCanvas.height)
-    gameplayCtx.scale(1,-1)
-    gameplayCtx.save()
 
-    explosionCtx.translate(0,gameplayCanvas.height)
-    explosionCtx.scale(1,-1)
-    explosionCtx.save()
 
     // let instructionTitleText = "Instructions"
     // let instructionContentText1 = "Press the start button above to start the game. This is a 2 player game. Use w and s OR up/down arrow keys to aim. Press space bar to fire. The game will automatically switch between players after each shot."
@@ -302,12 +299,21 @@ document.addEventListener("DOMContentLoaded", function(){
     menuCtx.textAlign = "center"
     menuCtx.fillStyle = "white"
 
+
+    
     for (i=0;i<instructionTextArr.length;i++){
         menuCtx.fillText(instructionTextArr[i], menuCanvas.width/2,menuCanvas.height/4+i*35)
     }
     
     // menuCtx.fillText(instructionContentText1, menuCanvas.width/2,menuCanvas.height/2)
     
+    gameplayCtx.translate(0,gameplayCanvas.height)
+    gameplayCtx.scale(1,-1)
+    gameplayCtx.save()
+
+    explosionCtx.translate(0,gameplayCanvas.height)
+    explosionCtx.scale(1,-1)
+    explosionCtx.save()
 
     currCannon = TriCannon
 
@@ -397,6 +403,7 @@ function gameLoop() {
             top: landscapeHeight,
             left: 0,
             right: gameplayCanvasWidth,
+            bottom: 0,
             name: "land"
         }
         if (document.querySelectorAll("div.currentPlayerDiv").length>0){
@@ -417,14 +424,10 @@ function gameLoop() {
 }
 
 function drawExplosion(x,y){
-    // let expl = new Path2D()
-    // gameplayCtx.globalCompositeOperation = "destination-over";
     explosionCtx.beginPath()
     explosionCtx.arc(x,y,explosionRadius,0,2*pi)
     explosionCtx.closePath()
     explosionCtx.fill()
-    
-
 }
 
 
@@ -439,8 +442,9 @@ function collisionDetection(Xf,Yf){
         const hitTop = Yf <= i.top
         const hitLeft = Xf >= i.left
         const hitRight = Xf <= i.right
+        const hitbottom = Yf >= i.bottom
 
-        if (hitTop === true && hitLeft === true && hitRight === true) {
+        if (hitTop === true && hitLeft === true && hitRight === true && hitbottom === true) {
             collisionFlag = true
             hitName = i.name
             return 
