@@ -36,7 +36,7 @@ class GenerateCannon{
     constructor(originX,originY){
         this.originX = originX
         this.originY = originY
-        this.deg = 45 // degrees
+        this.deg = 65 // degrees
         this.dir = 1
         this.truDeg = 0
         this.cannonMx = 0
