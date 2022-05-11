@@ -1,3 +1,17 @@
+#return-canvas {
+    width:60em;
+    height: 50vh;
+    
+    background-color: white;
+
+    margin: 0 auto;
+    position: absolute;
+    top: 10vh;
+    /* top: 0;
+    left: 0; */
+}
+
+
 #menu-canvas {
     width: 100em;
     height: 70vh;

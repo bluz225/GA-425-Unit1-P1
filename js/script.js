@@ -24,24 +24,11 @@ const menuCanvas = document.querySelector("#menu-canvas")
 const menuCtx = menuCanvas.getContext("2d")
 menuCanvas.setAttribute("height", getComputedStyle(menuCanvas)["height"])
 menuCanvas.setAttribute("width", getComputedStyle(menuCanvas)["width"])
-// const returnCanvas = document.querySelector("#return-canvas")
 
-//---------------
-
-
-
-
-
-
-function winscreenHandler(winFlag,winnerName){
-
-}
-
-
-
-
-//-----------------
-
+const returnCanvas = document.querySelector("#return-canvas")
+const returnCtx = returnCanvas.getContext("2d")
+returnCanvas.setAttribute("height", getComputedStyle(returnCanvas)["height"])
+returnCanvas.setAttribute("width", getComputedStyle(returnCanvas)["width"])
 
 //CLASS SETUP
 class GenerateCannon{
@@ -562,30 +549,28 @@ function revertY(convertedheight) {
 
 function MenuGameplaySwitchHandler(){
     if (menuFront === true) {
-        // maybe replace true false flags with z index, may use zindex handler? might be the same code. lawl
-        // menuFront = false
-        // gameplayFront = true
-        menuCanvas.style.zIndex = menuZindex
         pause(true)
+        menuCanvas.style.zIndex = menuZindex
+
         while(gameplayMenu.firstChild) {
             gameplayMenu.firstChild.remove()
-
         }
-        
+
         returnMenuDiv.innerText = "start game"
         returnMenuDiv.classList.add("start-ReturnMenu")
+
         returnMenuDiv.addEventListener("click", function(){
             menuFront= false
             reset()
             MenuGameplaySwitchHandler()
         })
+
         gameplayMenu.append(returnMenuDiv)
 
     } else if (menuFront === false) {
-        // menuFront = true
-        // gameplayFront = false
         pause(false)
         menuCanvas.style.zIndex = menuZindex*-1
+
         while(gameplayMenu.firstChild) {
             gameplayMenu.firstChild.remove()
 
@@ -598,6 +583,7 @@ function MenuGameplaySwitchHandler(){
             reset()
             MenuGameplaySwitchHandler()
         })
+
         gameplayMenu.append(currentPlayerDiv)
 
         currentPlayerDiv.innerText = "Current Player: triangle"
@@ -606,6 +592,27 @@ function MenuGameplaySwitchHandler(){
         
     }
 
+}
+
+function winscreenHandler(){
+    pause(true)
+    returnCanvas.style.zIndex = winscreenZindex
+
+    while(gameplayMenu.firstChild) {
+        gameplayMenu.firstChild.remove()
+    }
+
+    returnMenuDiv.innerText = "Play Another Game"
+    returnMenuDiv.classList.add("start-ReturnMenu")
+
+    returnMenuDiv.addEventListener("click", function(){
+        returnCanvas.style.zIndex = winscreenZindex*-1
+        reset()
+        
+    })
+
+    gameplayMenu.append(returnMenuDiv)
+    
 }
 
 function reset() {
