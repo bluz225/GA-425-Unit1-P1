@@ -25,17 +25,17 @@ const menuCtx = menuCanvas.getContext("2d")
 menuCanvas.setAttribute("height", getComputedStyle(menuCanvas)["height"])
 menuCanvas.setAttribute("width", getComputedStyle(menuCanvas)["width"])
 
-const returnCanvas = document.querySelector("#return-canvas")
-const returnCtx = returnCanvas.getContext("2d")
-returnCanvas.setAttribute("height", getComputedStyle(returnCanvas)["height"])
-returnCanvas.setAttribute("width", getComputedStyle(returnCanvas)["width"])
+const winCanvas = document.querySelector("#win-canvas")
+const winCtx = winCanvas.getContext("2d")
+winCanvas.setAttribute("height", getComputedStyle(winCanvas)["height"])
+winCanvas.setAttribute("width", getComputedStyle(winCanvas)["width"])
 
 //CLASS SETUP
 class GenerateCannon{
     constructor(originX,originY){
         this.originX = originX
         this.originY = originY
-        this.deg = 65 // degrees
+        this.deg = 45 // degrees
         this.dir = 1
         this.truDeg = 0
         this.cannonMx = 0
@@ -402,6 +402,7 @@ function gameLoop() {
         currentPlayerDiv.innerText = `Current Player: ${currentPlayer}`
         }
         gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
+        explosionCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
         GenerateLandscape(landscapeHeight)
         square.renderTurret()
         triangle.renderTurret()
@@ -450,9 +451,6 @@ function collisionDetection(Xf,Yf){
         collisionFlag = true
         console.log("explode on", hitName)
 
-        // clearInterval(projSetInt)
-        
-        
         let currShot 
         if (currentPlayer === "triangle"){
             currShot = TriShot
@@ -463,29 +461,54 @@ function collisionDetection(Xf,Yf){
         drawExplosion(currShot.Xf,currShot.Yf)
         
         if (hitName != "land") {
+            let winner = ""
             switch(hitName) {
+                
                 case("triangle"):
-                    console.log("square wins")
+                    winner = "square"    
+                    console.log(winner, "square wins")
+                    
+                    winFlag = true
                 break
 
                 case("square"):
+                    winner = "triangle"    
                     console.log("triangle wins")
+                    
+                    winFlag = true
                 break
+
             }
+            console.log("pp poopoo")
+            let winMessage = `${winner} Wins!`
+            winscreenHandler()
+            winCtx.font = "40px Arial";
+            winCtx.textAlign = "center"
+            winCtx.fillStyle = "black"
+            winCtx.fillText(winMessage, winCanvas.width/2,winCanvas.height/2)
+            // gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
+            // explosionCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
+            
             
         } else {
             setTimeout(function (){
-                gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
-                explosionCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
-                TriShot = new projectile(TriCannon.cannonMx,TriCannon.cannonMy,projSpeed,TriCannon.truDeg,TriCannon.dir)
-                SqShot = new projectile(SqCannon.cannonMx,SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
+                if(winFlag === false){
+                    gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
+                    explosionCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
+                    TriShot = new projectile(TriCannon.cannonMx,TriCannon.cannonMy,projSpeed,TriCannon.truDeg,TriCannon.dir)
+                    SqShot = new projectile(SqCannon.cannonMx,SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
 
-                playerSwitch(currentPlayer)
+                    playerSwitch(currentPlayer)
 
-                pauseState = false
-                firedFlag = false
-                collisionFlag = false
+                    pauseState = false
+                    firedFlag = false
+                    collisionFlag = false
+                
+                } else if(winFlag === true) {
+                    console.log("goes thru win set timeout")
+                    
 
+                }
             },1000)
         }
     }    
@@ -595,8 +618,9 @@ function MenuGameplaySwitchHandler(){
 }
 
 function winscreenHandler(){
+    winCtx.clearRect(0,0,winCanvas.width,winCanvas.height)
     pause(true)
-    returnCanvas.style.zIndex = winscreenZindex
+    winCanvas.style.zIndex = winscreenZindex
 
     while(gameplayMenu.firstChild) {
         gameplayMenu.firstChild.remove()
@@ -606,7 +630,9 @@ function winscreenHandler(){
     returnMenuDiv.classList.add("start-ReturnMenu")
 
     returnMenuDiv.addEventListener("click", function(){
-        returnCanvas.style.zIndex = winscreenZindex*-1
+        winCanvas.style.zIndex = winscreenZindex*-1
+        menuFront = false
+        MenuGameplaySwitchHandler()
         reset()
         
     })
