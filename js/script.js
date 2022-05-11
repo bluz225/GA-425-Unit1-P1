@@ -1,12 +1,13 @@
-
-
-
 //FETCH DOM ELEMENTS
-const menuCanvas = document.querySelector("#menu-canvas")
+
 const menuElements = document.querySelectorAll(".menu")
-const gameplayElements = document.querySelectorAll(".gameplay")
+const gameplayMenu = document.querySelector("#gameplayMenu")
 const startButton = document.querySelector("#start-Button")
-const currentPlayerText = document.querySelector("#current-Player")
+
+const returnMenuDiv = document.createElement("div")
+const currentPlayerDiv = document.createElement("div")
+
+
 
 // CANVAS SETUP
 const gameplayCanvas = document.querySelector("#gameplay-canvas")
@@ -14,15 +15,33 @@ const gameplayCtx = gameplayCanvas.getContext("2d")
 gameplayCanvas.setAttribute("height", getComputedStyle(gameplayCanvas)["height"])
 gameplayCanvas.setAttribute("width", getComputedStyle(gameplayCanvas)["width"])
 
-const projectileCanvas = document.querySelector("#projectile-canvas")
-const projectileCtx = projectileCanvas.getContext("2d")
-projectileCanvas.setAttribute("height", getComputedStyle(projectileCanvas)["height"])
-projectileCanvas.setAttribute("width", getComputedStyle(projectileCanvas)["width"])
-
 const explosionCanvas = document.querySelector("#explosion-canvas")
 const explosionCtx = explosionCanvas.getContext("2d")
 explosionCanvas.setAttribute("height", getComputedStyle(explosionCanvas)["height"])
 explosionCanvas.setAttribute("width", getComputedStyle(explosionCanvas)["width"])
+
+const menuCanvas = document.querySelector("#menu-canvas")
+const menuCtx = menuCanvas.getContext("2d")
+menuCanvas.setAttribute("height", getComputedStyle(menuCanvas)["height"])
+menuCanvas.setAttribute("width", getComputedStyle(menuCanvas)["width"])
+// const returnCanvas = document.querySelector("#return-canvas")
+
+//---------------
+
+
+
+
+
+
+function winscreenHandler(winFlag,winnerName){
+
+}
+
+
+
+
+//-----------------
+
 
 //CLASS SETUP
 class GenerateCannon{
@@ -50,8 +69,8 @@ class GenerateCannon{
     
     if (this.deg < 0) {
         this.deg = 0
-    } else if(this.deg > 180) {
-        this.deg = 180
+    } else if(this.deg > 90) {
+        this.deg = 90
     }
 
 
@@ -64,9 +83,6 @@ class GenerateCannon{
         this.cannonMx = XY[0]
         this.cannonMy = XY[1]
 
-        // this.truDeg = this.deg
-        // console.log("<90 degree", this.truDeg)
-
     } else if (this.deg > 90){
         rad = convertDegtoRad(this.deg) 
         const XY = generateAngledLineXY(this.originX,this.originY,cannonLength,rad,this.dir)
@@ -75,12 +91,10 @@ class GenerateCannon{
         this.truDeg = convertRadtoDeg(rad)
         this.cannonMx = XY[0]
         this.cannonMy = XY[1]
-        // this.truDeg = this.truDeg + convertRadtoDeg(rad)
-        // console.log(">90 degree", this.truDeg)
 
     } else if (this.deg === 90) {
         this.cannonMx = this.originX
-        this.cannonMy = this.originY-cannonLength
+        this.cannonMy = this.originY+cannonLength
         cannon.moveTo(this.originX, this.originY)
         cannon.lineTo(this.cannonMx, this.cannonMy)
         this.truDeg = 90
@@ -109,7 +123,7 @@ class GenerateCannon{
 
 class projectile {
     constructor(Xi,Yi,Vi,Deg,dir){
-        this.length = 10
+        this.length = 5
         this.t = 0
         this.Vi = Vi
         this.Vx = 0
@@ -123,10 +137,7 @@ class projectile {
         this.dir = dir
         this.hit = false
         
-
-    }
-
-    
+    }  
     
     render(Xi,Yi,length,degreeRad,direction,color){
         this.Xi = Xi
@@ -136,13 +147,13 @@ class projectile {
         const missileXYf = generateAngledLineXY(this.Xi,this.Yi,length*scale,degreeRad,direction)
         missile.lineTo(missileXYf[0], missileXYf[1])
         missile.closePath()
-        projectileCtx.strokeStyle = color
-        projectileCtx.stroke(missile)
+        gameplayCtx.strokeStyle = color
+        gameplayCtx.stroke(missile)
     }
 
     projectileMove(Xi,Yi,Vi,deg,dir){
         // let missile = new Path2D()
-        let tStep = 0.01
+        let tStep = 0.005
       
         // set intial settings at time 0
         if (this.t === 0) {
@@ -212,8 +223,6 @@ class TriangleTurrent extends Turret{
         triangle.moveTo(this.x, this.y)
         triangle.lineTo(this.x+this.side, this.y)
         triangle.lineTo(this.x+this.side/2, this.side+this.y)
-        // triangle.lineTo(this.side+this.x, this.side+this.y)
-        // triangle.lineTo(0+this.x, this.side+this.y)
         triangle.closePath();
         
         // render triangle drawn
@@ -247,7 +256,7 @@ const gameFloor = landscapeHeight
 let MouseCurrX = 0
 let MouseCurrY = 0
 const pi = Math.PI
-const gameSpeed = 32 // 60pfs is 16
+
 let currentPlayer = "triangle"
 let currCannon
 let currProj
@@ -259,11 +268,18 @@ let collisionFlag = false
 let explosionRadius = 10
 const projs = []
 
+let menuFront = true
+let winscreenFront = false
+let gameplayZindex = 1
+let explosionsZindex = 2
+let menuZindex = 3 // in use
+let winscreenZindex = 4
+
 // Create objects
-const triangle = new TriangleTurrent(PlayerTriXPos/scale,gameFloor,side,PlayerTriColor,"triangle")
-const square = new Turret(PlayerSqXPos/scale,gameFloor,side,PlayerSqColor,"square")
-const SqCannon = new GenerateCannon(square.centerx,square.centery)
-const TriCannon = new GenerateCannon(triangle.centerx,triangle.centery)
+let triangle = new TriangleTurrent(PlayerTriXPos/scale,gameFloor,side,PlayerTriColor,"triangle")
+let square = new Turret(PlayerSqXPos/scale,gameFloor,side,PlayerSqColor,"square")
+let SqCannon = new GenerateCannon(square.centerx,square.centery)
+let TriCannon = new GenerateCannon(triangle.centerx,triangle.centery)
 let TriShot = new projectile(TriCannon.cannonMx,TriCannon.cannonMy,projSpeed,TriCannon.truDeg,TriCannon.dir)
 let SqShot = new projectile(SqCannon.cannonMx,SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
 
@@ -272,45 +288,42 @@ const hitBoxArr = ["","",""]
 //DOM CONTENT LOADED HERE
 document.addEventListener("DOMContentLoaded", function(){
     // reset origins of all canvas to normal Cartisian coordinate system (origin at bottom left)
+    
+    MenuGameplaySwitchHandler("menu")
+    
     gameplayCtx.translate(0,gameplayCanvas.height)
     gameplayCtx.scale(1,-1)
     gameplayCtx.save()
 
-    projectileCtx.translate(0,projectileCanvas.height)
-    projectileCtx.scale(1,-1)
-    projectileCtx.save()
-    
-    explosionCtx.translate(0,explosionCanvas.height)
+    explosionCtx.translate(0,gameplayCanvas.height)
     explosionCtx.scale(1,-1)
     explosionCtx.save()
 
+    // let instructionTitleText = "Instructions"
+    // let instructionContentText1 = "Press the start button above to start the game. This is a 2 player game. Use w and s OR up/down arrow keys to aim. Press space bar to fire. The game will automatically switch between players after each shot."
+    const instructionTextArr = [
+        "GunShapes",
+        "",
+        "Instructions:",
+        "",
+        "Press the start button above to start the game.",
+        "Use w and s OR up/down arrow keys to aim. Press space bar to fire.",
+        "The game will automatically switch between players after each shot."
+    ]
+    menuCtx.font = "20px Arial";
+    menuCtx.textAlign = "center"
+    menuCtx.fillStyle = "white"
 
-
+    for (i=0;i<instructionTextArr.length;i++){
+        menuCtx.fillText(instructionTextArr[i], menuCanvas.width/2,menuCanvas.height/4+i*35)
+    }
+    
+    // menuCtx.fillText(instructionContentText1, menuCanvas.width/2,menuCanvas.height/2)
+    
 
     currCannon = TriCannon
-    // const game = setInterval(gameLoop,gameSpeed)
-    
-    
-    
+
     window.requestAnimationFrame(gameLoop)
-
-
-
-    // gameplayCanvas.addEventListener("mousemove", function(e){
-        
-    //     // console.log(e)
-    //     // MouseCurrX = e.offsetX
-    //     // MouseCurrY = e.offsetY
-    //     const rect = gameplayCanvas.getBoundingClientRect()
-    //     MouseCurrX = e.clientX - rect.left
-    //     MouseCurrY = e.clientY - rect.top 
-    //     // console.log(`x: ${MouseCurrX} y: ${MouseCurrY}`)
-    // })
-
-
-    // const testSquare = new Turret(0,0,100,100,"black")
-    // testSquare.renderTurret()
-    
     
         document.addEventListener("keydown", function(e){
             if (pauseState === false) {
@@ -321,28 +334,20 @@ document.addEventListener("DOMContentLoaded", function(){
                     currCannon = SqCannon
                 }
                 const speed = 1
-                // console.log(e.key)
-                // console.dir(e.key)
+
                 switch(e.key) {
                     case("w"):
                     case("ArrowUp"):
                         currCannon.deg += speed
-                        console.log(currCannon)
                         break
 
                     case("s"):
                     case("ArrowDown"):
                         currCannon.deg -= speed
-                        console.log(currCannon)
                         break
 
                     case(" "):
-                        // console.log(currentPlayer)
-                        // currCannon.deg -= speed
                         firedFlag = true
-
-                        // playerSwitch(currentPlayer)
-
                         window.requestAnimationFrame(projFired)
                         console.log("Spacebar was pressed")
                     break  
@@ -362,41 +367,32 @@ document.addEventListener("DOMContentLoaded", function(){
         }
         
     })
-
         
-        function pause(arg){
-            if (arg === true){
-                pauseState = true
-                // clearInterval(game,0)
-            } else if (arg === false) {
-                pauseState = false
-                // game = setInterval(gameLoop,gameSpeed)
-            }
-           
-        }
+
    
 })
 
 //FUNCTIONS BELOW HERE
 
+function pause(arg){
+    if (arg === true){
+        pauseState = true
+    } else if (arg === false) {
+        pauseState = false
+    }
+   
+}
+
 function projFired() {
 
 
     if (firedFlag === true && collisionFlag === false) {
-        // projectileCtx.clearRect(0,0,projectileCanvas.width,projectileCanvas.height)                
-        // console.log("proj fireloop running")
-        if (currentPlayer === "triangle") {
-            // console.log("Triangle fired")
-            
-            TriShot.projectileMove(TriCannon.cannonMx, TriCannon.cannonMy,projSpeed,TriCannon.truDeg,TriCannon.dir)
-            console.log("Tri Deg:",TriShot.Degi)
-            collisionDetection(TriShot.Xi,TriShot.Yi)
-            pauseState = true 
-            
-                    
-        } else if (currentPlayer === "square"){
-            // console.log("Square fired")
 
+        if (currentPlayer === "triangle") {          
+            TriShot.projectileMove(TriCannon.cannonMx, TriCannon.cannonMy,projSpeed,TriCannon.truDeg,TriCannon.dir)
+            collisionDetection(TriShot.Xi,TriShot.Yi)
+            pauseState = true     
+        } else if (currentPlayer === "square"){
             SqShot.projectileMove(SqCannon.cannonMx, SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
             collisionDetection(SqShot.Xi,SqShot.Yi)
             pauseState = true    
@@ -408,7 +404,6 @@ function projFired() {
 }
 
 function gameLoop() {
-
     if (pauseState === false){
         hitBoxArr[0] = {
             top: landscapeHeight,
@@ -416,29 +411,16 @@ function gameLoop() {
             right: gameplayCanvasWidth,
             name: "land"
         }
-
-        currentPlayerText.innerText = `Current Player: ${currentPlayer}`
-
+        if (document.querySelectorAll("div.currentPlayerDiv").length>0){
+        currentPlayerDiv.innerText = `Current Player: ${currentPlayer}`
+        }
         gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
         GenerateLandscape(landscapeHeight)
-        console.log("gameloop running")
-
-        // console.log("hitboxArr:",hitBoxArr)
-        
-        // grab current position of the tanks 
         square.renderTurret()
         triangle.renderTurret()
         TriCannon.renderCannon(MouseCurrX,MouseCurrY)
-        SqCannon.renderCannon(MouseCurrX,MouseCurrY)
-        // console.log(SqCannon)
-       
-
-        // console.log("triCan:",TriCannon.cannonMx,"triShot:",TriShot.Xi)
-
-
-        explosionCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
-        
-        
+        SqCannon.renderCannon(MouseCurrX,MouseCurrY)     
+                
     }
 
     window.requestAnimationFrame(gameLoop)
@@ -447,11 +429,13 @@ function gameLoop() {
 
 function drawExplosion(x,y){
     // let expl = new Path2D()
+    // gameplayCtx.globalCompositeOperation = "destination-over";
     explosionCtx.beginPath()
     explosionCtx.arc(x,y,explosionRadius,0,2*pi)
     explosionCtx.closePath()
     explosionCtx.fill()
-    explosionCanvas.style.zIndex = "3"
+    
+
 }
 
 
@@ -466,103 +450,71 @@ function collisionDetection(Xf,Yf){
         const hitTop = Yf <= i.top
         const hitLeft = Xf >= i.left
         const hitRight = Xf <= i.right
-        // console.log("-------")
-        // console.log("hit Top:", hitTop, i.name,"top:", i.top, "Yf", Yf)
-        // console.log("hit Left:", hitLeft,i.name,"left:", i.left, "Xf", Xf)
-        // console.log("hit Right:", hitRight,i.name,"right:", i.right, "Xf", Xf)
+
         if (hitTop === true && hitLeft === true && hitRight === true) {
-
-            hitName = i.name
-
-            // projectileCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
             collisionFlag = true
-            // console.log("explode on", i.name)
-
-            // clearInterval(projSetInt)
-            projectileCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
+            hitName = i.name
+            return 
+        }
+    })
             
-            let currShot 
-            if (currentPlayer === "triangle"){
-                currShot = TriShot
-            } else {
-                currShot = SqShot
+    if (collisionFlag === true){           
+        // projectileCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
+        collisionFlag = true
+        console.log("explode on", hitName)
+
+        // clearInterval(projSetInt)
+        
+        
+        let currShot 
+        if (currentPlayer === "triangle"){
+            currShot = TriShot
+        } else {
+            currShot = SqShot
+        }
+        
+        drawExplosion(currShot.Xf,currShot.Yf)
+        
+        if (hitName != "land") {
+            switch(hitName) {
+                case("triangle"):
+                    console.log("square wins")
+                break
+
+                case("square"):
+                    console.log("triangle wins")
+                break
             }
             
-            drawExplosion(currShot.Xf,currShot.Yf)
-           
-            
+        } else {
             setTimeout(function (){
-                // console.log(explosionCtx)
-                // explosionCtx.clearRect(0,0,explosionCtx.width,explosionCtx.height)
-                // projectileCtx.clearRect(0,0,explosionCtx.width,explosionCtx.height)
+                gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
+                explosionCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
                 TriShot = new projectile(TriCannon.cannonMx,TriCannon.cannonMy,projSpeed,TriCannon.truDeg,TriCannon.dir)
                 SqShot = new projectile(SqCannon.cannonMx,SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
 
-                // console.log("sq Mx",SqCannon.cannonMx, "SqShot xi",SqShot.Xi)
-                // console.log("tri Mx",TriCannon.cannonMx,"Tri Shot xi",TriShot.Xi)
-                
-                // console.log("current player:", currentPlayer)
                 playerSwitch(currentPlayer)
-                // console.log("current player:", currentPlayer)
-                
-                
-                // console.log("pause state:",pauseState)
+
                 pauseState = false
                 firedFlag = false
                 collisionFlag = false
-                // console.log("pause state:",pauseState)
-                // console.log("firedFlag:",firedFlag)
-                // console.log("collisionFlag:",collisionFlag)
-                // setInterval(projFired,gameSpeed)
-                // setInterval(gameLoop,gameSpeed)
 
             },1000)
-
-            
-
-
-            
-            
-            // playerSwitch(currentPlayer)
-            // clearInterval(game)
-            
-            // playerSwitch(currentPlayer)
-            
-            // let 
-            // ctx.beginPath();
-            // ctx.arc(100, 75, 50, 0, 2 * Math.PI);
-            // ctx.stroke();
         }
-    })
+    }    
 
-    // const hitLeft = TriShot.x + missile.width >= gameFloor
-    // // console.log("ogre left:", ogreLeft)
-    // const hitRight = TriShot.x <= ogre.x + ogre.width
-    // // console.log("ogre Right:", ogreRight)
-    // const hitTop = TriShot.y + hero.height >= ogre.y
-    // // console.log("ogre Top:", ogreTop)
-    // const hitBot = TriShot.y <= ogre.y + ogre.height
-    // // console.log("ogre Top:", ogreTop)
-
-    // if (hitLeft === true && hitRight===true && hitTop === true && hitBot === true) {
-    //     // console.log("hit")
-    //     ogre.alive = false
-    //     movementDisplay.innerText= "you killed Shrek! Who is the monster now?"
-    //     clearInterval(gameLoopInterval)
-
-    // }
 }
 
 //player switcher
 function playerSwitch(cPlayer){
     if (cPlayer === "triangle") {
         currentPlayer = "square"
-        currentPlayerText.innerText = `Current Player: ${currentPlayer}`
+        currentPlayerDiv.innerText = `Current Player: ${currentPlayer}`
 
 
     } else if(cPlayer === "square") {
         currentPlayer = "triangle"
-        currentPlayerText.innerText = `Current Player: ${currentPlayer}`
+        currentPlayerDiv.innerText = `Current Player: ${currentPlayer}`
 
 
     }
@@ -608,30 +560,64 @@ function revertY(convertedheight) {
     return gameplayCanvasHeight-convertedheight
 }
 
+function MenuGameplaySwitchHandler(){
+    if (menuFront === true) {
+        // maybe replace true false flags with z index, may use zindex handler? might be the same code. lawl
+        // menuFront = false
+        // gameplayFront = true
+        menuCanvas.style.zIndex = menuZindex
+        pause(true)
+        while(gameplayMenu.firstChild) {
+            gameplayMenu.firstChild.remove()
 
-
-
-
-
-
-// switches between menu screen and gameplay screen (WIP)
-function screenSwitch() {
-    if (menufront === true){
-        gameplayElements.forEach(function(i){
-            i.classList.add("negOneZ")
+        }
+        
+        returnMenuDiv.innerText = "start game"
+        returnMenuDiv.classList.add("start-ReturnMenu")
+        returnMenuDiv.addEventListener("click", function(){
+            menuFront= false
+            reset()
+            MenuGameplaySwitchHandler()
         })
+        gameplayMenu.append(returnMenuDiv)
 
-        menuElements.forEach(function(i){
-            i.classList.add("posOneZ")
-        })
+    } else if (menuFront === false) {
+        // menuFront = true
+        // gameplayFront = false
+        pause(false)
+        menuCanvas.style.zIndex = menuZindex*-1
+        while(gameplayMenu.firstChild) {
+            gameplayMenu.firstChild.remove()
 
-    } else {
-        gameplayElements.forEach(function(i){
-            i.classList.add("posOneZ")
-        })
+        }
 
-        menuElements.forEach(function(i){
-            i.classList.add("negOneZ")
+        returnMenuDiv.innerText = "Return to Menu"
+        returnMenuDiv.classList.add("start-ReturnMenu")
+        returnMenuDiv.addEventListener("click", function(){
+            menuFront= true
+            reset()
+            MenuGameplaySwitchHandler()
         })
+        gameplayMenu.append(currentPlayerDiv)
+
+        currentPlayerDiv.innerText = "Current Player: triangle"
+        currentPlayerDiv.classList.add("current-Player")
+        gameplayMenu.append(returnMenuDiv)
+        
     }
+
+}
+
+function reset() {
+    GenerateLandscape()
+    firedFlag = false
+    winFlag = false
+    collisionFlag = false
+    currentPlayer = "triangle"
+    triangle = new TriangleTurrent(PlayerTriXPos/scale,gameFloor,side,PlayerTriColor,"triangle")
+    square = new Turret(PlayerSqXPos/scale,gameFloor,side,PlayerSqColor,"square")
+    SqCannon = new GenerateCannon(square.centerx,square.centery)
+    TriCannon = new GenerateCannon(triangle.centerx,triangle.centery)
+    TriShot = new projectile(TriCannon.cannonMx,TriCannon.cannonMy,projSpeed,TriCannon.truDeg,TriCannon.dir)
+    SqShot = new projectile(SqCannon.cannonMx,SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
 }

@@ -6,22 +6,18 @@
     </head>
     <body>
         <div id="gamescreen-container">
-            
-            <!-- <div class="menu screen-container">
-                <h2 class="menu">Menu Screen</h2>
-                <canvas id="menu-canvas" class="menu"></canvas>
-                <button id="start-Button" class="menu"></button>
-            </div> -->
-
-
-            <section class="gameplay screen-container">
-                <div>
-                    <h2 id="gamePlayStatus" class="gameplay">Game Play Screen</h2>
-                    <h2 id="current-Player"></h2>
+            <section id="screen-container">
+                <div id="gameplayMenu">
+                    <!-- <div class="current-Player"></div> -->
+                    <!-- <div class="start-ReturnMenu">Return to Menu</div> -->
+                </div>    
+                <div id="gameCanvases">
+                    <canvas id="gameplay-canvas"></canvas>
+                    <canvas id="explosion-canvas"></canvas>
+                    <canvas id="return-canvas"></canvas>
+                    <canvas id="menu-canvas"></canvas>
                 </div>
-                <canvas id="gameplay-canvas"class="gameplay"></canvas>
-                <canvas id="projectile-canvas" class="gameplay"></canvas>
-                <canvas id="explosion-canvas" class="gameplay"></canvas>
+
                 <!-- <button id="returnMenu-Button" class="menu"></button> -->
             </section>
         </div>
