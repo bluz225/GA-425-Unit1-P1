@@ -51,12 +51,17 @@ class AngleHUD extends generateGUI {
         super(x,y)
         this.diameter = diameter
         this.lastAng = 0
+        this.innerRadius
+        this.outerRadius
     }
     
     render(){
         let innerRadius = this.diameter/2+10
+        this.innerRadius = innerRadius
         let HUDthickness = 20
         let outerRadius = innerRadius + HUDthickness
+        this.outerRadius = outerRadius
+
 
         guiCtx.save()
 
@@ -69,7 +74,7 @@ class AngleHUD extends generateGUI {
 
         guiCtx.beginPath()
         guiCtx.arc(this.x,this.y,outerRadius,0,pi,false)
-        guiCtx.fillStyle = "rgba(255, 255,255,.25)"
+        guiCtx.fillStyle = "rgba(255, 255,255,0.5)"
         guiCtx.fill()
 
         guiCtx.restore()
@@ -77,13 +82,17 @@ class AngleHUD extends generateGUI {
     }
 
     renderLastShotLine(deg,dir){
+        
         this.lastAng = convertDegtoRad(deg)
-
-        guiCtx.save()
-
-        
-        
-
+        console.log("renderLastShotAng",dir)
+        gameplayCtx.save()
+        gameplayCtx.beginPath()
+        gameplayCtx.moveTo(this.x + this.innerRadius*Math.cos(this.lastAng)*dir, this.y + this.innerRadius*Math.sin(this.lastAng))
+        gameplayCtx.lineTo(this.x + this.outerRadius*Math.cos(this.lastAng)*dir, this.y + this.outerRadius*Math.sin(this.lastAng))
+        gameplayCtx.strokeStyle = "red"
+        // gameplayCtx.globalCompositeOperation = "source-atop"
+        gameplayCtx.stroke()
+        gameplayCtx.restore()
 
     }
 }
@@ -336,19 +345,12 @@ let SqShot = new projectile(SqCannon.cannonMx,SqCannon.cannonMy,projSpeed,SqCann
 let TriAngleHUD = new AngleHUD(triangle.centerx,triangle.centery,side)
 let SqAngleHUD = new AngleHUD(square.centerx,square.centery,side)
 
-
 //DOM CONTENT LOADED HERE
 document.addEventListener("DOMContentLoaded", function(){
     // reset origins of all canvas to normal Cartisian coordinate system (origin at bottom left)
     
     MenuGameplaySwitchHandler("menu")
-    // window.requestAnimationFrame(gameLoop)
     
-    
-
-
-    // let instructionTitleText = "Instructions"
-    // let instructionContentText1 = "Press the start button above to start the game. This is a 2 player game. Use w and s OR up/down arrow keys to aim. Press space bar to fire. The game will automatically switch between players after each shot."
     const instructionTextArr = [
         "GunShapes",
         "",
@@ -360,16 +362,11 @@ document.addEventListener("DOMContentLoaded", function(){
     ]
     menuCtx.font = "20px Arial";
     menuCtx.textAlign = "center"
-    menuCtx.fillStyle = "white"
-
-
-    
+    menuCtx.fillStyle = "white"   
     for (i=0;i<instructionTextArr.length;i++){
         menuCtx.fillText(instructionTextArr[i], menuCanvas.width/2,menuCanvas.height/4+i*35)
     }
-    
-    // menuCtx.fillText(instructionContentText1, menuCanvas.width/2,menuCanvas.height/2)
-    
+     
     gameplayCtx.translate(0,gameplayCanvas.height)
     gameplayCtx.scale(1,-1)
     gameplayCtx.save()
@@ -389,56 +386,56 @@ document.addEventListener("DOMContentLoaded", function(){
 
     
     
-        document.addEventListener("keydown", function(e){
-            if (pauseState === false) {
-                
-                if (currentPlayer === "triangle"){
-                    currCannon = TriCannon
-                } else if (currentPlayer === "square"){
-                    currCannon = SqCannon
-                }
-                const speed = 1
-
-                switch(e.key) {
-                    case("w"):
-                    case("ArrowUp"):
-                        currCannon.deg += speed
-                        // window.requestAnimationFrame(gameLoop)
-                        gameLoop()
-                        break
-
-                    case("s"):
-                    case("ArrowDown"):
-                        currCannon.deg -= speed
-                        // window.requestAnimationFrame(gameLoop)
-                        gameLoop()
-                        break
-
-                    case(" "):
-                        firedFlag = true
-                        window.requestAnimationFrame(projFired)
-                        console.log("Spacebar was pressed")
-                        break  
-
-                    case("Escape"):
-                        pause(true)
-                        console.log("Paused")
-                        break              
-                }
+    document.addEventListener("keydown", function(e){
+    if (pauseState === false) {
             
-            } else {
+            if (currentPlayer === "triangle"){
+                currCannon = TriCannon
+            } else if (currentPlayer === "square"){
+                currCannon = SqCannon
+            }
+            const speed = 1
+
+            switch(e.key) {
+                case("w"):
+                case("ArrowUp"):
+                    currCannon.deg += speed
+                    // window.requestAnimationFrame(gameLoop)
+                    gameLoop()
+                    break
+
+                case("s"):
+                case("ArrowDown"):
+                    currCannon.deg -= speed
+                    // window.requestAnimationFrame(gameLoop)
+                    gameLoop()
+                    break
+
+                case(" "):
+                    firedFlag = true
+                    window.requestAnimationFrame(projFired)
+                    console.log("Spacebar was pressed")
+                    break  
+
+                case("Escape"):
+                    pause(true)
+                    console.log("Paused")
+                    break              
+                }
+        
+        } else {
                 switch(e.key) {
                     case("Escape" && winFlag === false):
                         pause(false)
                         console.log("Unpaused")
                     break  
-            }
+                }
         }
-        
+    
     })
-        
+            
 
-   
+    
 })
 
 //FUNCTIONS BELOW HERE
@@ -474,41 +471,43 @@ function projFired() {
 }
 
 function gameLoop() {
-    if (pauseState === false){
-        hitBoxArr[0] = {
-            top: landscapeHeight,
-            left: 0,
-            right: gameplayCanvasWidth,
-            bottom: 0,
-            name: "land"
+
+    for (i=0;i<10;i++){
+        if (pauseState === false){
+            hitBoxArr[0] = {
+                top: landscapeHeight,
+                left: 0,
+                right: gameplayCanvasWidth,
+                bottom: 0,
+                name: "land"
+            }
+            if (document.querySelectorAll("div.currentPlayerDiv").length>0){
+            currentPlayerDiv.innerText = `Current Player: ${currentPlayer}`
+            }
+            gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
+            explosionCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
+            GenerateLandscape(landscapeHeight)
+            square.renderTurret()
+            triangle.renderTurret()
+            if (currentPlayer === "triangle") {
+                TriAngleHUD.render()
+                TriAngleHUD.renderLastShotLine(TriShot.Degi,TriShot.dir)
+                console.log("tri last ang:",TriAngleHUD.lastAng)
+            } else if (currentPlayer === "square") {
+                SqAngleHUD.render()
+            }
+            
+            // SqAngleHUD.render()
+            TriCannon.renderCannon(MouseCurrX,MouseCurrY)
+            SqCannon.renderCannon(MouseCurrX,MouseCurrY)  
+            
+            
+                    
         }
-        if (document.querySelectorAll("div.currentPlayerDiv").length>0){
-        currentPlayerDiv.innerText = `Current Player: ${currentPlayer}`
-        }
-        gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
-        explosionCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
-        GenerateLandscape(landscapeHeight)
-        square.renderTurret()
-        triangle.renderTurret()
-        if (currentPlayer === "triangle") {
-            TriAngleHUD.render()
-            TriAngleHUD.renderLastShotLine(TriShot.Degi,TriShot.dir)
-            console.log("tri last ang:",TriAngleHUD.lastAng)
-        } else if (currentPlayer === "square") {
-            SqAngleHUD.render()
-        }
-        
-        // SqAngleHUD.render()
-        TriCannon.renderCannon(MouseCurrX,MouseCurrY)
-        SqCannon.renderCannon(MouseCurrX,MouseCurrY)  
-        
-          
-                
+        // setTimeout(function(){
+        //     window.requestAnimationFrame(gameLoop)
+        // },gamespeed)
     }
-    // setTimeout(function(){
-    //     window.requestAnimationFrame(gameLoop)
-    // },gamespeed)
-    
     
     
     
