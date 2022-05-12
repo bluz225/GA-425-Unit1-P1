@@ -73,7 +73,7 @@ GA 425 Unit 1 Project 1 Repo
 - [ ]  remember where it shot and if the shot landed too short then set a hard min limit on next shot angle. If too high then set hard max limit. Self iterating until it wins.
 - [ ]variable intial velocity of projectile fired based on how long the left-mouse has been held down
 - [ ]  implement a hud to show 0->max 
-- [ ]  implement a cannon aim with a 180 degree hud centered around the "turret" asset
+- [x]  implement a cannon aim with a 180 degree hud centered around the "turret" asset
 - [ ]  implement trail for projectile
 - [ ]implement movement of turret
 - [ ]implement landscape with a hill in the middle
