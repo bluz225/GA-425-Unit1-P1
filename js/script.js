@@ -3,6 +3,9 @@ const menuElements = document.querySelectorAll(".menu")
 const gameplayMenu = document.querySelector("#gameplayMenu")
 const startButton = document.querySelector("#start-Button")
 
+
+
+
 const returnMenuDiv = document.createElement("div")
 const currentPlayerDiv = document.createElement("div")
 const replayDiv = document.createElement("div")
@@ -45,25 +48,45 @@ class generateGUI {
     }
 }
 
-class WindArrowHUD extends generateGUI{
+class WindHUD extends generateGUI{
     constructor(x,y){
         super(x,y)
+ 
     }
 
-    render(angle,dir){
-        guiCtx.save()
-        guiCtx.beginPath()
-        const arrowtail = generateAngledLineXY(this.x,this.y,windArrowLength/2,angle,dir)
-        const arrowhead = generateAngledLineXY(this.x,this.y,windArrowLength/2,angle,dir)
-        guiCtx.moveTo(this.x.this.y)
-        guiCtx.lineTo(arrowtail[0], arrowtail[1])
+    render(x,y,angle){
+        console.log("wind x:",x,"y:", y)
+        console.log("wind render")
+        angle
+        // guiCtx.save()
+        // guiCtx.beginPath()
+        // const arrowtail = generateAngledLineXY(this.x,this.y,windArrowLength/2,angle,dir)
+        // const arrowhead = generateAngledLineXY(this.x,this.y,windArrowLength/2,angle,dir)
+        // guiCtx.moveTo(this.x.this.y)
+        // guiCtx.lineTo(arrowtail[0], arrowtail[1])
 
 
-        guiCtx.beginPath()
-        guiCtx.moveTo(this.x.this.y)
-        guiCtx.lineTo(arrowtail[0], arrowtail[1])
-        guiCtx.fillStyle = ""
-        guiCtx.fill()
+        // guiCtx.beginPath()
+        // guiCtx.moveTo(this.x.this.y)
+        // guiCtx.lineTo(arrowtail[0], arrowtail[1])
+        // guiCtx.fillStyle = ""
+        // guiCtx.fill()
+
+        let windImgsize = 100
+        const windImage = new Image()
+        windImage.src = "./imgs/windImg.jpg"
+        
+        windImage.onload = function(){
+            guiCtx.save() 
+            guiCtx.drawImage(windImage,x,y,windImgsize,windImgsize)
+            guiCtx.translate(x+windImgsize/2,y+windImgsize/2)
+            guiCtx.rotate(3.14)           
+            guiCtx.restore()
+            
+            // guiCtx.translate(-x,-y)
+        }
+        
+        
 
     }
 }
@@ -105,7 +128,6 @@ class AngleHUD extends generateGUI {
     renderLastShotLine(deg,dir){
         
         this.lastAng = convertDegtoRad(deg)
-        console.log("renderLastShotAng",dir)
         gameplayCtx.save()
         gameplayCtx.beginPath()
         const XYi = generateAngledLineXY(this.x,this.y,this.innerRadius,this.lastAng,dir)
@@ -126,7 +148,7 @@ class GenerateCannon{
     constructor(originX,originY){
         this.originX = originX
         this.originY = originY
-        this.deg = 65 // degrees
+        this.deg = cannonStartingAngle // degrees
         this.dir = 1
         this.truDeg = 0
         this.cannonMx = 0
@@ -195,6 +217,8 @@ class GenerateCannon{
 
     cannon.closePath()
     cannon.lineJoin = "round"
+    gameplayCtx.shadowColor = "white"
+    gameplayCtx.shadowBlur = 3;
     gameplayCtx.stroke(cannon)
     }
 
@@ -221,19 +245,28 @@ class projectile {
     }  
     
     render(Xi,Yi,length,degreeRad,direction,color){
+        
         if (showProjTrail === false) {
+        
             explosionCtx.clearRect(0,0,gameplayCanvas.width,gameplayCanvas.height)
             
         }
+        explosionCtx.save()
         this.Xi = Xi
         this.Yi = Yi
         let missile = new Path2D()
         missile.moveTo(Xi, Yi)
         const missileXYf = generateAngledLineXY(this.Xi,this.Yi,projsize*scale,degreeRad,direction)
         missile.lineTo(missileXYf[0], missileXYf[1])
+        explosionCtx.shadowColor = "white"
+        explosionCtx.shadowBlur = 10;
+        // explosionCtx.shadowOffsetX = this.Xi+5;
+        // explosionCtx.shadowOffsetY = this.Yi+5;
         missile.closePath()
+
         explosionCtx.strokeStyle = color
         explosionCtx.stroke(missile)
+        explosionCtx.restore()
     }
 
     projectileMove(Xi,Yi,Vi,deg,dir){
@@ -338,9 +371,10 @@ let gameplayCanvasWidth = gameplayCanvas.width
 let centerline = gameplayCanvas.width/2
 const side = 50*scale
 let PlayerTriXPos = 100*scale
-let PlayerTriColor = "black"
-let PlayerSqXPos = 1300*scale
+let PlayerTriColor = "white"
+let PlayerSqXPos = (gameplayCanvas.width*scale-PlayerTriXPos)
 let PlayerSqColor = PlayerTriColor
+let cannonStartingAngle = 80
 const landscapeHeight = 100*scale
 const gameFloor = landscapeHeight
 let MouseCurrX = 0
@@ -352,10 +386,11 @@ let currCannon
 let currProj
 let pauseState = false
 let firedFlag = false
-let projSpeed = 120
+let projSpeed = 150
 let winFlag = false
 let collisionFlag = false
 let explosionRadius = 10
+let explosionColor = "white"
 let showProjTrail = false
 let projsize = 30
 const projs = []
@@ -374,8 +409,8 @@ let windArrowLength = 100
 let menuFront = true
 let winscreenFront = false
 let gameplayZindex = 1
-let explosionsZindex = 2
-let guiZindex = 3
+let explosionsZindex = 3
+let guiZindex = 2
 let menuZindex = 4 // in use
 let winscreenZindex = 5 // in use
 const hitBoxArr = ["","","",""]
@@ -389,6 +424,7 @@ let TriShot = new projectile(TriCannon.cannonMx,TriCannon.cannonMy,projSpeed,Tri
 let SqShot = new projectile(SqCannon.cannonMx,SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
 let TriAngleHUD = new AngleHUD(triangle.centerx,triangle.centery,side)
 let SqAngleHUD = new AngleHUD(square.centerx,square.centery,side)
+let WindIndicator = new WindHUD()
 
 //DOM CONTENT LOADED HERE
 document.addEventListener("DOMContentLoaded", function(){
@@ -405,7 +441,7 @@ document.addEventListener("DOMContentLoaded", function(){
         "Use w and s OR up/down arrow keys to aim. Press space bar to fire.",
         "The game will automatically switch between players after each shot."
     ]
-    menuCtx.font = "20px Arial";
+    menuCtx.font = "20px Helvetica";
     menuCtx.textAlign = "center"
     menuCtx.fillStyle = "white"   
     for (i=0;i<instructionTextArr.length;i++){
@@ -413,6 +449,8 @@ document.addEventListener("DOMContentLoaded", function(){
     }
     menuCtx.beginPath()
     menuCtx.strokeStyle = "white"
+    menuCtx.shadowColor = "white"
+    menuCtx.shadowBlur = 5
     menuCtx.lineJoin = "round"
     menuCtx.lineWidth = 10
     menuCtx.strokeRect(menuCanvas.width/8,menuCanvas.height/8,menuCanvas.width*0.75,menuCanvas.height*0.75)
@@ -429,9 +467,13 @@ document.addEventListener("DOMContentLoaded", function(){
     guiCtx.translate(0,guiCanvas.height)
     guiCtx.scale(1,-1)
     guiCtx.save()
+    console.log("gui z:",guiZindex)
     guiCanvas.style.zIndex = guiZindex
     guiCtx.globalCompositeOperation = "source-over"
     
+    
+    
+
     currCannon = TriCannon
     pauseState = false
     gameLoop()
@@ -536,7 +578,7 @@ function projFired() {
 }
 
 function gameLoop() {
-
+    
     for (i=0;i<10;i++){
         if (pauseState === false){
             hitBoxArr[0] = {
@@ -551,6 +593,7 @@ function gameLoop() {
             }
             gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
             explosionCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
+            WindIndicator.render(guiCanvas.width/2,guiCanvas.height*3/4+30,pi)
             GenerateLandscape(landscapeHeight)
             square.renderTurret()
             triangle.renderTurret()
@@ -569,10 +612,15 @@ function gameLoop() {
     }    
 }
 
-function drawExplosion(x,y){
+function drawExplosion(x,y,color){
+    explosionCtx.save()
     explosionCtx.beginPath()
+    explosionCtx.fillStyle = color
+    explosionCtx.shadowColor = "white"
+    explosionCtx.shadowBlur = 10;
     explosionCtx.arc(x,y,explosionRadius,0,2*pi)
     explosionCtx.fill()
+    explosionCtx.restore()
 }
 
 function collisionDetection(Xi,Yi,Xf,Yf){
@@ -625,7 +673,7 @@ function collisionDetection(Xi,Yi,Xf,Yf){
             currShot = SqShot
         }
         explosionCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
-        drawExplosion(Xcolcheck,Ycolcheck)
+        drawExplosion(Xcolcheck,Ycolcheck,explosionColor)
         
         if (hitName === "triangle" || hitName === "square"  ) {
             let winner = ""
@@ -652,8 +700,8 @@ function collisionDetection(Xi,Yi,Xf,Yf){
             winscreenHandler()
             winCtx.font = "40px Arial";
             winCtx.textAlign = "center"
-            winCtx.fillStyle = "black"
-            winCtx.fillText(winMessage, winCanvas.width/2,winCanvas.height/2)
+            winCtx.fillStyle = "white"
+            winCtx.fillText(winMessage, winCanvas.width/2,winCanvas.height/2-30)
             // gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
             // explosionCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
             
@@ -716,7 +764,7 @@ function convertDegtoRad(deg){
 
 // generates intial landscape
 function GenerateLandscape(height){
-    gameplayCtx.fillStyle = "green"
+    gameplayCtx.fillStyle = "brown"
     gameplayCtx.fillRect(0,0, gameplayCanvasWidth,height)
 }
 
@@ -742,6 +790,9 @@ function MenuGameplaySwitchHandler(){
 
         returnMenuDiv.innerText = "start game"
         returnMenuDiv.classList.add("start-ReturnMenu")
+        returnMenuDiv.classList.add("menuDivStyler")
+        returnMenuDiv.classList.remove("gameplayDivStyler")
+        returnMenuDiv.classList.remove("gameoverDivStyler")
 
         returnMenuDiv.addEventListener("click", function(){
             menuFront= false
@@ -757,11 +808,13 @@ function MenuGameplaySwitchHandler(){
 
         while(gameplayMenu.firstChild) {
             gameplayMenu.firstChild.remove()
-
         }
 
         returnMenuDiv.innerText = "Return to Menu"
         returnMenuDiv.classList.add("start-ReturnMenu")
+        returnMenuDiv.classList.remove("menuDivStyler")
+        returnMenuDiv.classList.remove("gameoverDivStyler")
+        returnMenuDiv.classList.add("gameplayDivStyler")
         returnMenuDiv.addEventListener("click", function(){
             menuFront= true
             reset()
@@ -772,6 +825,7 @@ function MenuGameplaySwitchHandler(){
 
         currentPlayerDiv.innerText = "Current Player: Triangle"
         currentPlayerDiv.classList.add("current-Player")
+        currentPlayerDiv.classList.add("infoHUDStyler")
         gameplayMenu.append(returnMenuDiv)
         
     }
@@ -789,18 +843,19 @@ function winscreenHandler(){
 
     replayDiv.innerText = "Play Another Game"
     replayDiv.classList.add("start-ReturnMenu")
+    replayDiv.classList.add("gameoverDivStyler")
     replayDiv.addEventListener("click", function(){
         winCanvas.style.zIndex = winscreenZindex*-1
         menuFront = false
         MenuGameplaySwitchHandler()
         reset()
-        
     })
     gameplayMenu.append(replayDiv)
 
 
     returnMenuDiv.innerText = "Return to Menu"
     returnMenuDiv.classList.add("start-ReturnMenu")
+    returnMenuDiv.classList.add("gameoverDivStyler")
 
     returnMenuDiv.addEventListener("click", function(){
         winCanvas.style.zIndex = winscreenZindex*-1
@@ -815,7 +870,7 @@ function winscreenHandler(){
 }
 
 function reset() {
-    GenerateLandscape()
+    GenerateLandscape(landscapeHeight)
     firedFlag = false
     winFlag = false
     collisionFlag = false

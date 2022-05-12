@@ -52,31 +52,52 @@ body {
 #gameplayMenu {
     display: flex;
     justify-content: space-around;
-    height: 30vh;
+    height: 70vh;
+    width: 100em;
     position: relative;
     z-index: 10;
-
-   
+    border: 1px solid white;
 }
 
+.menuDivStyler{
+    margin: auto auto 100px auto;
+    border: 5px solid white;
+}
 
+.infoHUDStyler {
+    margin: 20px auto auto auto;
+}
+
+.gameplayDivStyler{
+    margin: 20px auto auto auto;
+    border: 5px solid white;
+}
+
+.gameoverDivStyler{
+    margin: auto auto 35vh auto;
+    border: 5px solid white;
+}
 
 .start-ReturnMenu, .current-Player{
     color: white;
-    width: 130px;
-    height: 60px;
-    margin: 1% auto;
-    /* padding: 25px; */
+    /* width: 130px;
+    height: 60px; */
+    /* margin: auto auto; */
+    /* margin: auto auto 120px auto; */
+    /* border: 5px solid white; */
+    font-family: Helvetica;
+    padding: 25px;
     text-align: center;
     /* position: absolute; */
-
-
-    
 }
 
 .start-ReturnMenu {
-    border: 1px solid black;
+    
     cursor: pointer;
+}
+
+.current-Player {
+    font-size: 20px;
 }
 
 #gameplay-canvas, #explosion-canvas {
@@ -94,7 +115,7 @@ body {
 
 #gameplay-canvas {
     position: relative;
-    background-color: lightblue;
+    background-color: black;
 }
 
 
