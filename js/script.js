@@ -193,6 +193,8 @@ class projectile {
         this.Yf 
         this.dir = dir
         this.hit = false
+        this.Xprev
+        this.Yprev
         
     }  
     
@@ -237,6 +239,8 @@ class projectile {
         // console.log(grav)
         this.Degi = Math.atan(this.Vyi/this.Vx*this.dir)
         this.Vi = Math.sqrt(Math.pow(this.Vyf,2)+Math.pow(this.Vx,2))
+        this.Xprev=this.Xi
+        this.Yprev=this.Yi
         this.Xi = this.Xf
         this.Yi = this.Yf
 
@@ -334,7 +338,7 @@ const randWindIntmax = 10000
 const randWindIntmin = 3000
 let windVx = 0
 let windVy = 0
-let windFlag = true
+let windFlag = false
 
 let menuFront = true
 let winscreenFront = false
@@ -453,16 +457,16 @@ document.addEventListener("DOMContentLoaded", function(){
 function windGenerator(){
     let windVxmin = -10
     let windVxmax = 10
-    let windVymin = -5
-    let windVymax = 5
+    let windVymin = -10
+    let windVymax = 10
     randWindInt = randWindIntmin+Math.floor(Math.random()*(randWindIntmax-randWindIntmin))
-    console.log("rand wind int", randWindInt)
+    // console.log("rand wind int", randWindInt)
     if (windFlag === true) {
         setTimeout(function(){
             windVx = windVxmin + Math.random()*(windVxmax-windVxmin)
             windVy = windVymin + Math.random()*(windVymax-windVymin)
-            console.log("wind Vx:",windVx)
-            console.log("wind Vy:",windVy)
+            // console.log("wind Vx:",windVx)
+            // console.log("wind Vy:",windVy)
             windGenerator()
         },randWindInt)
         
@@ -487,13 +491,15 @@ function projFired() {
 
         if (currentPlayer === "triangle") {          
             TriShot.projectileMove(TriCannon.cannonMx, TriCannon.cannonMy,projSpeed,TriCannon.truDeg,TriCannon.dir)
-            collisionDetection(TriShot.Xi,TriShot.Yi)
+            const a = collisionDetection(TriShot.Xprev,TriShot.Yprev,TriShot.Xf,TriShot.Yf)
+            console.log("col det tri",a)
+
             pauseState = true     
         } else if (currentPlayer === "square"){
             SqShot.projectileMove(SqCannon.cannonMx, SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
-            collisionDetection(SqShot.Xi,SqShot.Yi)
+            const a = collisionDetection(SqShot.Xprev,SqShot.Yprev,SqShot.Xf, SqShot.Yf)
             pauseState = true    
-            
+            console.log("col det sq",a)
         }
         if (collisionFlag === false) {
         window.requestAnimationFrame(projFired)
@@ -548,7 +554,6 @@ function gameLoop() {
 function drawExplosion(x,y){
     explosionCtx.beginPath()
     explosionCtx.arc(x,y,explosionRadius,0,2*pi)
-    explosionCtx.closePath()
     explosionCtx.fill()
 }
 
@@ -556,23 +561,44 @@ function drawExplosion(x,y){
 // detect collision with something and stops the setInterval (WIP)
 // renders explosions.(WIP)
 // checks if someone was damaged.(WIP)
-function collisionDetection(Xf,Yf){
+function collisionDetection(Xi,Yi,Xf,Yf){
     let hitName =""
-    //Axis Aligned bounding box collisional algorithm
-    // AABB Colision Detection
-    hitBoxArr.forEach(function(i){
-        const hitTop = Yf <= i.top
-        const hitLeft = Xf >= i.left
-        const hitRight = Xf <= i.right
-        const hitbottom = Yf >= i.bottom
+    let resolution = 100
+    let Xstep = (Xf-Xi)/resolution
+    let Ystep = (Yf-Yi)/resolution
+    let Xcolcheck
+    let Ycolcheck
+    console.log("Xf",Xf,"Xi",Xi)
+    console.log("Xstep",Xstep,"Ystep",Ystep)
 
-        if (hitTop === true && hitLeft === true && hitRight === true && hitbottom === true) {
-            collisionFlag = true
-            hitName = i.name
-            return 
+
+    for (j=0;j<resolution;j++){
+        if (collisionFlag === false) {
+            //Axis Aligned bounding box collisional algorithm
+            // AABB Colision Detection
+            Xcolcheck = Xi + Xstep*j
+            Ycolcheck = Yi + Ystep*j
+            console.log("Xstep",Xstep,"Ystep",Ystep)
+            console.log("Xcheck:", Xcolcheck,"Ycheck:", Ycolcheck)
+            // console.log("Xcheck:", Xcolcheck,"Ycheck:", Ycolcheck)
+            hitBoxArr.forEach(function(i){
+                const hitTop = Ycolcheck <= i.top
+                const hitLeft = Xcolcheck >= i.left
+                const hitRight = Xcolcheck <= i.right
+                const hitbottom = Ycolcheck >= i.bottom
+
+
+                if (hitTop === true && hitLeft === true && hitRight === true && hitbottom === true) {
+                    collisionFlag = true
+                    hitName = i.name
+
+                }
+            })
+        } else {
+            j=resolution
         }
-    })
-            
+    }
+    
     if (collisionFlag === true){           
         // projectileCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
         collisionFlag = true
@@ -585,7 +611,7 @@ function collisionDetection(Xf,Yf){
             currShot = SqShot
         }
         
-        drawExplosion(currShot.Xf,currShot.Yf)
+        drawExplosion(Xcolcheck,Ycolcheck)
         
         if (hitName != "land") {
             let winner = ""
