@@ -222,23 +222,24 @@ class projectile {
             this.Degi = convertDegtoRad(this.Degi)
             console.log("deg:",deg)
             // calculate initial x velocity, this does not change in projectile motion
-            this.Vx = this.Vi*Math.cos(this.Degi)*this.dir+windVx
+            this.Vx = this.Vi*Math.cos(this.Degi)*this.dir
             
         }
 
-        this.Vyi = this.Vi*Math.sin(this.Degi)-grav*this.t+windVy
+        this.Vyi = this.Vi*Math.sin(this.Degi)-grav*this.t
         this.render(this.Xi,this.Yi,this.length,this.Degi,this.dir,"red")
         // iterate time step
         this.t = this.t + tStep
         //Calculate and assign next step projectile motion parameters
         this.Vyf = this.Vyi
-        this.Xf = this.Xi+this.Vx*this.t
-        this.Yf = (this.Yi+this.Vyi*this.t-grav*Math.pow(this.t,2)/2)
+        this.Xf = this.Xi+this.Vx*this.t+windVx*this.t
+        this.Yf = this.Yi+this.Vyi*this.t-grav*Math.pow(this.t,2)/2+windVy*this.t
         // console.log(grav)
         this.Degi = Math.atan(this.Vyi/this.Vx*this.dir)
         this.Vi = Math.sqrt(Math.pow(this.Vyf,2)+Math.pow(this.Vx,2))
         this.Xi = this.Xf
         this.Yi = this.Yf
+
     }
 
 }
@@ -328,10 +329,12 @@ let explosionRadius = 10
 const projs = []
 let gamespeed = 320 // 16 is 60 fps
 
-
-let windVx = 0.5
-let windVy = -0.1
-let windFlag = false
+let randWindInt
+const randWindIntmax = 10000
+const randWindIntmin = 3000
+let windVx = 0
+let windVy = 0
+let windFlag = true
 
 let menuFront = true
 let winscreenFront = false
@@ -390,7 +393,8 @@ document.addEventListener("DOMContentLoaded", function(){
     currCannon = TriCannon
     pauseState = false
     gameLoop()
-
+    windGenerator()
+    // setInterval(windGenerator,randWindInt)
     
     
     document.addEventListener("keydown", function(e){
@@ -447,17 +451,22 @@ document.addEventListener("DOMContentLoaded", function(){
 
 //FUNCTIONS BELOW HERE
 function windGenerator(){
-    let windVxmin = -0.5
-    let windVxmax = 0.5
-    let windVymin = -0.1
-    let windVymax = 0.01
-    
+    let windVxmin = -10
+    let windVxmax = 10
+    let windVymin = -5
+    let windVymax = 5
+    randWindInt = randWindIntmin+Math.floor(Math.random()*(randWindIntmax-randWindIntmin))
+    console.log("rand wind int", randWindInt)
     if (windFlag === true) {
-        windVx = windVxmin + Math.random()*(windVxmax-windVxmin)
-        windVy = windVymin + Math.random()*(windVymax-windVymin)
+        setTimeout(function(){
+            windVx = windVxmin + Math.random()*(windVxmax-windVxmin)
+            windVy = windVymin + Math.random()*(windVymax-windVymin)
+            console.log("wind Vx:",windVx)
+            console.log("wind Vy:",windVy)
+            windGenerator()
+        },randWindInt)
+        
     }
-
-
 }
 
 
