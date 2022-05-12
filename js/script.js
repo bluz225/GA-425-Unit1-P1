@@ -31,46 +31,59 @@ const winCtx = winCanvas.getContext("2d")
 winCanvas.setAttribute("height", getComputedStyle(winCanvas)["height"])
 winCanvas.setAttribute("width", getComputedStyle(winCanvas)["width"])
 
+const guiCanvas = document.querySelector("#gui-canvas")
+const guiCtx = guiCanvas.getContext("2d")
+guiCanvas.setAttribute("height", getComputedStyle(guiCanvas)["height"])
+guiCanvas.setAttribute("width", getComputedStyle(guiCanvas)["width"])
+
+
 //CLASS SETUP
 class generateGUI {
-    constructor(x,y,ctx){
+    constructor(x,y){
         this.x = x
         this.y = y
-        this.ctx = ctx
+
     }
 }
 
 class AngleHUD extends generateGUI {
-    constructor(x,y,diameter,ctx){
-        super(x,y,ctx)
+    constructor(x,y,diameter){
+        super(x,y)
         this.diameter = diameter
         this.lastAng = 0
     }
     
     render(){
         let innerRadius = this.diameter/2+10
-        let HUDthickness = 10
+        let HUDthickness = 20
         let outerRadius = innerRadius + HUDthickness
-        // console.log(this.ctx)
-        this.ctx.beginPath()
-        // this.ctx.moveTo(this.x+innerRadius,this.y)
-        // this.ctx.lineTo(this.x+outerRadius,this.y)
-        this.ctx.moveTo(this.x+outerRadius,this.y)
-        this.ctx.arcTo(this.x,this.y+outerRadius,this.x+outerRadius,this.y+outerRadius,outerRadius)
-        // this.ctx.arc(this.x,this.y,outerRadius,0,pi)
 
-        // this.ctx.moveTo(this.x-outerRadius,this.y)
-        // this.ctx.lineTo(this.x-innerRadius,this.y)
-        // this.ctx.arc(this.x,this.y,innerRadius,0,pi)
-        // this.ctx.moveTo(this.x-innerRadius,this.y)
-        // this.ctx.lineTo(this.x-outerRadius,this.y)
-        // this.ctx.arcTo(this.x+innerRadius,this.y,this.x-innerRadius,this.y,innerRadius)
-        // this.ctx.closePath()
+        guiCtx.save()
+
+        guiCtx.beginPath()
+        guiCtx.arc(this.x-1,this.y-1,innerRadius+1,0,pi,false)
+        guiCtx.fillStyle = ""
+        guiCtx.fill()
+
+        guiCtx.globalCompositeOperation = "source-out"
+
+        guiCtx.beginPath()
+        guiCtx.arc(this.x,this.y,outerRadius,0,pi,false)
+        guiCtx.fillStyle = "rgba(255, 255,255,.25)"
+        guiCtx.fill()
+
+        guiCtx.restore()
         
-        this.ctx.stroke()
     }
 
-    update(){
+    renderLastShotLine(deg,dir){
+        this.lastAng = convertDegtoRad(deg)
+
+        guiCtx.save()
+
+        
+        
+
 
     }
 }
@@ -302,6 +315,7 @@ let winFlag = false
 let collisionFlag = false
 let explosionRadius = 10
 const projs = []
+let gamespeed = 320 // 16 is 60 fps
 
 let menuFront = true
 let winscreenFront = false
@@ -319,7 +333,8 @@ let SqCannon = new GenerateCannon(square.centerx,square.centery)
 let TriCannon = new GenerateCannon(triangle.centerx,triangle.centery)
 let TriShot = new projectile(TriCannon.cannonMx,TriCannon.cannonMy,projSpeed,TriCannon.truDeg,TriCannon.dir)
 let SqShot = new projectile(SqCannon.cannonMx,SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
-let TriAngleHUD = new AngleHUD(triangle.centerx,triangle.centery,side,gameplayCtx)
+let TriAngleHUD = new AngleHUD(triangle.centerx,triangle.centery,side)
+let SqAngleHUD = new AngleHUD(square.centerx,square.centery,side)
 
 
 //DOM CONTENT LOADED HERE
@@ -327,6 +342,8 @@ document.addEventListener("DOMContentLoaded", function(){
     // reset origins of all canvas to normal Cartisian coordinate system (origin at bottom left)
     
     MenuGameplaySwitchHandler("menu")
+    // window.requestAnimationFrame(gameLoop)
+    
     
 
 
@@ -357,13 +374,20 @@ document.addEventListener("DOMContentLoaded", function(){
     gameplayCtx.scale(1,-1)
     gameplayCtx.save()
 
-    explosionCtx.translate(0,gameplayCanvas.height)
+    explosionCtx.translate(0,explosionCanvas.height)
     explosionCtx.scale(1,-1)
     explosionCtx.save()
 
+    guiCtx.translate(0,guiCanvas.height)
+    guiCtx.scale(1,-1)
+    guiCtx.save()
+    guiCanvas.style.zIndex = guiZindex
+    
     currCannon = TriCannon
+    pauseState = false
+    gameLoop()
 
-    window.requestAnimationFrame(gameLoop)
+    
     
         document.addEventListener("keydown", function(e){
             if (pauseState === false) {
@@ -379,27 +403,32 @@ document.addEventListener("DOMContentLoaded", function(){
                     case("w"):
                     case("ArrowUp"):
                         currCannon.deg += speed
+                        // window.requestAnimationFrame(gameLoop)
+                        gameLoop()
                         break
 
                     case("s"):
                     case("ArrowDown"):
                         currCannon.deg -= speed
+                        // window.requestAnimationFrame(gameLoop)
+                        gameLoop()
                         break
 
                     case(" "):
                         firedFlag = true
                         window.requestAnimationFrame(projFired)
                         console.log("Spacebar was pressed")
-                    break  
+                        break  
+
                     case("Escape"):
                         pause(true)
                         console.log("Paused")
-                    break              
+                        break              
                 }
             
             } else {
                 switch(e.key) {
-                    case("Escape"):
+                    case("Escape" && winFlag === false):
                         pause(false)
                         console.log("Unpaused")
                     break  
@@ -438,8 +467,9 @@ function projFired() {
             pauseState = true    
             
         }
-
+        if (collisionFlag === false) {
         window.requestAnimationFrame(projFired)
+        }
     }    
 }
 
@@ -460,13 +490,27 @@ function gameLoop() {
         GenerateLandscape(landscapeHeight)
         square.renderTurret()
         triangle.renderTurret()
-        TriAngleHUD.render()
+        if (currentPlayer === "triangle") {
+            TriAngleHUD.render()
+            TriAngleHUD.renderLastShotLine(TriShot.Degi,TriShot.dir)
+            console.log("tri last ang:",TriAngleHUD.lastAng)
+        } else if (currentPlayer === "square") {
+            SqAngleHUD.render()
+        }
+        
+        // SqAngleHUD.render()
         TriCannon.renderCannon(MouseCurrX,MouseCurrY)
-        SqCannon.renderCannon(MouseCurrX,MouseCurrY)     
+        SqCannon.renderCannon(MouseCurrX,MouseCurrY)  
+        
+          
                 
     }
-
-    window.requestAnimationFrame(gameLoop)
+    // setTimeout(function(){
+    //     window.requestAnimationFrame(gameLoop)
+    // },gamespeed)
+    
+    
+    
     
 }
 
@@ -555,16 +599,12 @@ function collisionDetection(Xf,Yf){
                     pauseState = false
                     firedFlag = false
                     collisionFlag = false
+                    gameLoop()
                 
-                } else if(winFlag === true) {
-                    console.log("goes thru win set timeout")
-                    
-
-                }
+                } 
             },1000)
         }
     }    
-
 }
 
 //player switcher
@@ -710,6 +750,7 @@ function reset() {
     firedFlag = false
     winFlag = false
     collisionFlag = false
+    pauseState = false
     currentPlayer = "triangle"
     triangle = new TriangleTurrent(PlayerTriXPos/scale,gameFloor,side,PlayerTriColor,"triangle")
     square = new Turret(PlayerSqXPos/scale,gameFloor,side,PlayerSqColor,"square")
@@ -717,4 +758,5 @@ function reset() {
     TriCannon = new GenerateCannon(triangle.centerx,triangle.centery)
     TriShot = new projectile(TriCannon.cannonMx,TriCannon.cannonMy,projSpeed,TriCannon.truDeg,TriCannon.dir)
     SqShot = new projectile(SqCannon.cannonMx,SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
+    gameLoop()
 }
