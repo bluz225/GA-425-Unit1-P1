@@ -45,6 +45,29 @@ class generateGUI {
     }
 }
 
+class WindArrowHUD extends generateGUI{
+    constructor(x,y){
+        super(x,y)
+    }
+
+    render(angle,dir){
+        guiCtx.save()
+        guiCtx.beginPath()
+        const arrowtail = generateAngledLineXY(this.x,this.y,windArrowLength/2,angle,dir)
+        const arrowhead = generateAngledLineXY(this.x,this.y,windArrowLength/2,angle,dir)
+        guiCtx.moveTo(this.x.this.y)
+        guiCtx.lineTo(arrowtail[0], arrowtail[1])
+
+
+        guiCtx.beginPath()
+        guiCtx.moveTo(this.x.this.y)
+        guiCtx.lineTo(arrowtail[0], arrowtail[1])
+        guiCtx.fillStyle = ""
+        guiCtx.fill()
+
+    }
+}
+
 class AngleHUD extends generateGUI {
     constructor(x,y,diameter){
         super(x,y)
@@ -171,6 +194,7 @@ class GenerateCannon{
     }
 
     cannon.closePath()
+    cannon.lineJoin = "round"
     gameplayCtx.stroke(cannon)
     }
 
@@ -197,15 +221,19 @@ class projectile {
     }  
     
     render(Xi,Yi,length,degreeRad,direction,color){
+        if (showProjTrail === false) {
+            explosionCtx.clearRect(0,0,gameplayCanvas.width,gameplayCanvas.height)
+            
+        }
         this.Xi = Xi
         this.Yi = Yi
         let missile = new Path2D()
         missile.moveTo(Xi, Yi)
-        const missileXYf = generateAngledLineXY(this.Xi,this.Yi,length*scale,degreeRad,direction)
+        const missileXYf = generateAngledLineXY(this.Xi,this.Yi,projsize*scale,degreeRad,direction)
         missile.lineTo(missileXYf[0], missileXYf[1])
         missile.closePath()
-        gameplayCtx.strokeStyle = color
-        gameplayCtx.stroke(missile)
+        explosionCtx.strokeStyle = color
+        explosionCtx.stroke(missile)
     }
 
     projectileMove(Xi,Yi,Vi,deg,dir){
@@ -328,15 +356,20 @@ let projSpeed = 120
 let winFlag = false
 let collisionFlag = false
 let explosionRadius = 10
+let showProjTrail = false
+let projsize = 30
 const projs = []
 let gamespeed = 320 // 16 is 60 fps
+
+
 
 let randWindInt
 const randWindIntmax = 10000
 const randWindIntmin = 3000
 let windVx = 0
 let windVy = 0
-let windFlag = true
+let windFlag = false
+let windArrowLength = 100
 
 let menuFront = true
 let winscreenFront = false
@@ -378,7 +411,13 @@ document.addEventListener("DOMContentLoaded", function(){
     for (i=0;i<instructionTextArr.length;i++){
         menuCtx.fillText(instructionTextArr[i], menuCanvas.width/2,menuCanvas.height/4+i*35)
     }
-     
+    menuCtx.beginPath()
+    menuCtx.strokeStyle = "white"
+    menuCtx.lineJoin = "round"
+    menuCtx.lineWidth = 10
+    menuCtx.strokeRect(menuCanvas.width/8,menuCanvas.height/8,menuCanvas.width*0.75,menuCanvas.height*0.75)
+    menuCtx.closePath() 
+
     gameplayCtx.translate(0,gameplayCanvas.height)
     gameplayCtx.scale(1,-1)
     gameplayCtx.save()
@@ -391,6 +430,7 @@ document.addEventListener("DOMContentLoaded", function(){
     guiCtx.scale(1,-1)
     guiCtx.save()
     guiCanvas.style.zIndex = guiZindex
+    guiCtx.globalCompositeOperation = "source-over"
     
     currCannon = TriCannon
     pauseState = false
@@ -443,19 +483,18 @@ document.addEventListener("DOMContentLoaded", function(){
     
     })
             
-
-    
 })
 
 //FUNCTIONS BELOW HERE
 function windGenerator(){
-    let windVxmin = -10
-    let windVxmax = 10
-    let windVymin = -10
-    let windVymax = 10
-    randWindInt = randWindIntmin+Math.floor(Math.random()*(randWindIntmax-randWindIntmin))
+
     if (windFlag === true) {
         setTimeout(function(){
+            let windVxmin = -10
+            let windVxmax = 10
+            let windVymin = -10
+            let windVymax = 10
+            randWindInt = randWindIntmin+Math.floor(Math.random()*(randWindIntmax-randWindIntmin))
             windVx = windVxmin + Math.random()*(windVxmax-windVxmin)
             windVy = windVymin + Math.random()*(windVymax-windVymin)
             windGenerator()
@@ -483,16 +522,14 @@ function projFired() {
         if (currentPlayer === "triangle") {          
             TriShot.projectileMove(TriCannon.cannonMx, TriCannon.cannonMy,projSpeed,TriCannon.truDeg,TriCannon.dir)
             const a = collisionDetection(TriShot.Xprev,TriShot.Yprev,TriShot.Xf,TriShot.Yf)
-            console.log("col det tri",a)
-
             pauseState = true     
         } else if (currentPlayer === "square"){
             SqShot.projectileMove(SqCannon.cannonMx, SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
             const a = collisionDetection(SqShot.Xprev,SqShot.Yprev,SqShot.Xf, SqShot.Yf)
             pauseState = true    
-            console.log("col det sq",a)
         }
         if (collisionFlag === false) {
+
         window.requestAnimationFrame(projFired)
         }
     }    
@@ -510,7 +547,7 @@ function gameLoop() {
                 name: "land"
             }
             if (document.querySelectorAll("div.currentPlayerDiv").length>0){
-            currentPlayerDiv.innerText = `Current Player: ${currentPlayer}`
+            currentPlayerDiv.innerText = `Current Player: ${capitalizeFirstLetter(currentPlayer)}`
             }
             gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
             explosionCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
@@ -587,7 +624,7 @@ function collisionDetection(Xi,Yi,Xf,Yf){
         } else {
             currShot = SqShot
         }
-        
+        explosionCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
         drawExplosion(Xcolcheck,Ycolcheck)
         
         if (hitName === "triangle" || hitName === "square"  ) {
@@ -610,7 +647,8 @@ function collisionDetection(Xi,Yi,Xf,Yf){
 
             }
             console.log("pp poopoo")
-            let winMessage = `${winner} Wins!`
+            let winMessage = `${capitalizeFirstLetter(winner)} Wins!`
+            
             winscreenHandler()
             winCtx.font = "40px Arial";
             winCtx.textAlign = "center"
@@ -645,14 +683,11 @@ function collisionDetection(Xi,Yi,Xf,Yf){
 function playerSwitch(cPlayer){
     if (cPlayer === "triangle") {
         currentPlayer = "square"
-        currentPlayerDiv.innerText = `Current Player: ${currentPlayer}`
-
+        currentPlayerDiv.innerText = `Current Player: ${capitalizeFirstLetter(currentPlayer)}`
 
     } else if(cPlayer === "square") {
         currentPlayer = "triangle"
-        currentPlayerDiv.innerText = `Current Player: ${currentPlayer}`
-
-
+        currentPlayerDiv.innerText = `Current Player: ${capitalizeFirstLetter(currentPlayer)}`
     }
 }
 
@@ -735,7 +770,7 @@ function MenuGameplaySwitchHandler(){
 
         gameplayMenu.append(currentPlayerDiv)
 
-        currentPlayerDiv.innerText = "Current Player: triangle"
+        currentPlayerDiv.innerText = "Current Player: Triangle"
         currentPlayerDiv.classList.add("current-Player")
         gameplayMenu.append(returnMenuDiv)
         
@@ -794,3 +829,8 @@ function reset() {
     SqShot = new projectile(SqCannon.cannonMx,SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
     gameLoop()
 }
+
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+  
