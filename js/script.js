@@ -87,8 +87,10 @@ class AngleHUD extends generateGUI {
         console.log("renderLastShotAng",dir)
         gameplayCtx.save()
         gameplayCtx.beginPath()
-        gameplayCtx.moveTo(this.x + this.innerRadius*Math.cos(this.lastAng)*dir, this.y + this.innerRadius*Math.sin(this.lastAng))
-        gameplayCtx.lineTo(this.x + this.outerRadius*Math.cos(this.lastAng)*dir, this.y + this.outerRadius*Math.sin(this.lastAng))
+        const XYi = generateAngledLineXY(this.x,this.y,this.innerRadius,this.lastAng,dir)
+        const XYf = generateAngledLineXY(this.x,this.y,this.outerRadius,this.lastAng,dir)
+        gameplayCtx.moveTo(XYi[0],XYi[1])
+        gameplayCtx.lineTo(XYf[0],XYf[1])
         gameplayCtx.strokeStyle = "red"
         // gameplayCtx.globalCompositeOperation = "source-atop"
         gameplayCtx.stroke()
@@ -220,11 +222,11 @@ class projectile {
             this.Degi = convertDegtoRad(this.Degi)
             console.log("deg:",deg)
             // calculate initial x velocity, this does not change in projectile motion
-            this.Vx = this.Vi*Math.cos(this.Degi)*this.dir
+            this.Vx = this.Vi*Math.cos(this.Degi)*this.dir+windVx
             
         }
 
-        this.Vyi = (this.Vi*Math.sin(this.Degi)-grav*this.t)
+        this.Vyi = this.Vi*Math.sin(this.Degi)-grav*this.t+windVy
         this.render(this.Xi,this.Yi,this.length,this.Degi,this.dir,"red")
         // iterate time step
         this.t = this.t + tStep
@@ -325,6 +327,11 @@ let collisionFlag = false
 let explosionRadius = 10
 const projs = []
 let gamespeed = 320 // 16 is 60 fps
+
+
+let windVx = 0.5
+let windVy = -0.1
+let windFlag = false
 
 let menuFront = true
 let winscreenFront = false
@@ -439,6 +446,21 @@ document.addEventListener("DOMContentLoaded", function(){
 })
 
 //FUNCTIONS BELOW HERE
+function windGenerator(){
+    let windVxmin = -0.5
+    let windVxmax = 0.5
+    let windVymin = -0.1
+    let windVymax = 0.01
+    
+    if (windFlag === true) {
+        windVx = windVxmin + Math.random()*(windVxmax-windVxmin)
+        windVy = windVymin + Math.random()*(windVymax-windVymin)
+    }
+
+
+}
+
+
 
 function pause(arg){
     if (arg === true){
@@ -492,9 +514,10 @@ function gameLoop() {
             if (currentPlayer === "triangle") {
                 TriAngleHUD.render()
                 TriAngleHUD.renderLastShotLine(TriShot.Degi,TriShot.dir)
-                console.log("tri last ang:",TriAngleHUD.lastAng)
+                // console.log("tri last ang:",TriAngleHUD.lastAng)
             } else if (currentPlayer === "square") {
                 SqAngleHUD.render()
+                SqAngleHUD.renderLastShotLine(SqShot.Degi,SqShot.dir)
             }
             
             // SqAngleHUD.render()
