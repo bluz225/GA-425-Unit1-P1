@@ -1,5 +1,4 @@
 //FETCH DOM ELEMENTS
-
 const menuElements = document.querySelectorAll(".menu")
 const gameplayMenu = document.querySelector("#gameplayMenu")
 const startButton = document.querySelector("#start-Button")
@@ -61,7 +60,6 @@ class AngleHUD extends generateGUI {
         let HUDthickness = 20
         let outerRadius = innerRadius + HUDthickness
         this.outerRadius = outerRadius
-
 
         guiCtx.save()
 
@@ -338,7 +336,7 @@ const randWindIntmax = 10000
 const randWindIntmin = 3000
 let windVx = 0
 let windVy = 0
-let windFlag = false
+let windFlag = true
 
 let menuFront = true
 let winscreenFront = false
@@ -398,9 +396,7 @@ document.addEventListener("DOMContentLoaded", function(){
     pauseState = false
     gameLoop()
     windGenerator()
-    // setInterval(windGenerator,randWindInt)
-    
-    
+
     document.addEventListener("keydown", function(e){
     if (pauseState === false) {
             
@@ -415,14 +411,12 @@ document.addEventListener("DOMContentLoaded", function(){
                 case("w"):
                 case("ArrowUp"):
                     currCannon.deg += speed
-                    // window.requestAnimationFrame(gameLoop)
                     gameLoop()
                     break
 
                 case("s"):
                 case("ArrowDown"):
                     currCannon.deg -= speed
-                    // window.requestAnimationFrame(gameLoop)
                     gameLoop()
                     break
 
@@ -460,13 +454,10 @@ function windGenerator(){
     let windVymin = -10
     let windVymax = 10
     randWindInt = randWindIntmin+Math.floor(Math.random()*(randWindIntmax-randWindIntmin))
-    // console.log("rand wind int", randWindInt)
     if (windFlag === true) {
         setTimeout(function(){
             windVx = windVxmin + Math.random()*(windVxmax-windVxmin)
             windVy = windVymin + Math.random()*(windVymax-windVymin)
-            // console.log("wind Vx:",windVx)
-            // console.log("wind Vy:",windVy)
             windGenerator()
         },randWindInt)
         
@@ -529,26 +520,16 @@ function gameLoop() {
             if (currentPlayer === "triangle") {
                 TriAngleHUD.render()
                 TriAngleHUD.renderLastShotLine(TriShot.Degi,TriShot.dir)
-                // console.log("tri last ang:",TriAngleHUD.lastAng)
             } else if (currentPlayer === "square") {
                 SqAngleHUD.render()
                 SqAngleHUD.renderLastShotLine(SqShot.Degi,SqShot.dir)
             }
-            
-            // SqAngleHUD.render()
+
             TriCannon.renderCannon(MouseCurrX,MouseCurrY)
             SqCannon.renderCannon(MouseCurrX,MouseCurrY)  
-            
-            
-                    
+                       
         }
-        // setTimeout(function(){
-        //     window.requestAnimationFrame(gameLoop)
-        // },gamespeed)
-    }
-    
-    
-    
+    }    
 }
 
 function drawExplosion(x,y){
@@ -557,10 +538,6 @@ function drawExplosion(x,y){
     explosionCtx.fill()
 }
 
-
-// detect collision with something and stops the setInterval (WIP)
-// renders explosions.(WIP)
-// checks if someone was damaged.(WIP)
 function collisionDetection(Xi,Yi,Xf,Yf){
     let hitName =""
     let resolution = 100
@@ -568,19 +545,14 @@ function collisionDetection(Xi,Yi,Xf,Yf){
     let Ystep = (Yf-Yi)/resolution
     let Xcolcheck
     let Ycolcheck
-    console.log("Xf",Xf,"Xi",Xi)
-    console.log("Xstep",Xstep,"Ystep",Ystep)
 
 
     for (j=0;j<resolution;j++){
         if (collisionFlag === false) {
-            //Axis Aligned bounding box collisional algorithm
-            // AABB Colision Detection
+
             Xcolcheck = Xi + Xstep*j
             Ycolcheck = Yi + Ystep*j
-            console.log("Xstep",Xstep,"Ystep",Ystep)
-            console.log("Xcheck:", Xcolcheck,"Ycheck:", Ycolcheck)
-            // console.log("Xcheck:", Xcolcheck,"Ycheck:", Ycolcheck)
+
             hitBoxArr.forEach(function(i){
                 const hitTop = Ycolcheck <= i.top
                 const hitLeft = Xcolcheck >= i.left
@@ -594,15 +566,20 @@ function collisionDetection(Xi,Yi,Xf,Yf){
 
                 }
             })
+
+            if (Xcolcheck <= 0 || Xcolcheck >= gameplayCanvas.width){
+                collisionFlag = true
+                hitName = "sides"
+            } 
         } else {
             j=resolution
         }
     }
     
     if (collisionFlag === true){           
-        // projectileCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
+
         collisionFlag = true
-        console.log("explode on", hitName)
+
 
         let currShot 
         if (currentPlayer === "triangle"){
@@ -613,7 +590,7 @@ function collisionDetection(Xi,Yi,Xf,Yf){
         
         drawExplosion(Xcolcheck,Ycolcheck)
         
-        if (hitName != "land") {
+        if (hitName === "triangle" || hitName === "square"  ) {
             let winner = ""
             switch(hitName) {
                 
