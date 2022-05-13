@@ -812,7 +812,7 @@ function revertY(convertedheight) {
     return gameplayCanvasHeight-convertedheight
 }
 
-let windsetTstart
+const windsetTstart = 0
 
 
 

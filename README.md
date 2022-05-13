@@ -21,8 +21,8 @@ GA 425 Unit 1 Project 1 Repo
 ![Wireframe-GameOver](./wireframes/Wireframe-GameOver.png)
 <br>
 
-
 ---
+
 ## Anticipated technologies to use:
 - Canvas
 - JS
@@ -30,6 +30,7 @@ GA 425 Unit 1 Project 1 Repo
 - Physics Equations for projectile motion
 
 ---
+
 ## (TECHNICAL?) REQUIREMENTS:
 ## MVP
 #### Start Menu 
@@ -52,22 +53,24 @@ GA 425 Unit 1 Project 1 Repo
 - [x] end game once one player has been hit
 - [x] display winner and have option to return to start menu or play again
 - [x] implement exit to start menu button
+
 ---
+
 ## Stretch Goals
 
 - [ ] implement win counters for each player
 - [x] implement aim hud during player turn that remembers/shows last shot angle
-- [ ] implement showing current aiming angle (0-180 degrees)
+- [ ] implement showing current aiming angle (0-180 degrees), *design decision to exclude feature
 - [ ] implement different turrents that can be chosen at start menu
 - [ ] implement HP so its not 1hit kill
 - [ ] implement increased damage for high angled shots
 - [ ] implement different cannon "types" 
 - [ ] where projectile behavior isnt based solely on gravity/projectile motion
 - [ ] different bullet behavior
-- [x]implement wind on random start time with random duration timer
+- [x] implement wind on random start time with random duration timer, *partial completion due to recursive setTimeout not properly clearly. alternative solution of setInterval at 10s was implemented.
 - [x] random wind speed
 - [x] random wind direction (left and right)
-- [x] random wind direction: variable-360 degrees (testing shows 360 degrees is not fun/feasible)
+- [x] random wind direction: variable-360 degrees *design decision: testing shows 360 degrees is not fun/feasible, alternative solution of 0 to +/- 45 degrees in in all 4 quadrants from the x-axis was implemented.
 - [ ] pve mode
 - [ ] have computer randomly shoot
 - [ ] remember where it shot and if the shot landed too short then set a hard min limit on next shot angle. If too high then set hard max limit. Self iterating until it wins.
@@ -82,4 +85,30 @@ GA 425 Unit 1 Project 1 Repo
 
 
 
+#### Post Project week review:
 
+### Sources:
+- MDN site
+- stack overflow, various examples 
+- web3 site
+- various codepen examples to draw inspiration
+
+---
+
+### Approach taken:
+- used physics based equations for projectile motion
+- scaling was implemented in anticipation for camera zoom in/out and projectile following
+- multiple canvases was used to implement screen switching overlayed with div "buttons"
+- on top of implementing screen switching, gameplay, explosions and wind were on separate canvas for ease of clearing.
+- rendering was only executed during button clicks or projectile motion to reduce burdon on hardware.
+- majority of the code is in variables to allow for setting control
+
+---
+
+### Post Reflection and Unsolved problems:
+- Overall, this was much more challenging than I had initially anticipated, the main issues I ran into that consumed higher than expected amounts of time was:
+1. Creating the projectile motion equations in a non-cartesian coordinate system. (which was MAINLY resoved after I discovered ctx.translate/scale) 
+2. angle calculations.
+3. Properly generating the wind indicator with rotation using ctx.translate/rotate/save/restore
+4. Understanding and creating the angle HUD shape using globalcompositoperations method.
+- setInterval for period wind vector change does not fully reset with clearinterval for some reason. Not completely sure why.
