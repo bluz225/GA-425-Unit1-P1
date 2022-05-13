@@ -846,18 +846,8 @@ function MenuGameplaySwitchHandler(){
             windHandler()
             
             if (windFlag === true ) {
-                // windsetTstart = setTimeout(function windy(){
-                //     windHandler()
-                //     // console.log("wind set t start")
-                //     // console.log("windtimerInt in setTimeout:",randWindInt)
-                    
-                //     windsetTrecurv = setTimeout(windy,randWindInt)
-                // },randWindInt)
-
-                
+              
                 windsetTstart = setInterval(windHandler,10000)
-                
-
 
             } else {
                 clearTimeout(windsetTstart)
