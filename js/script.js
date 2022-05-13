@@ -5,7 +5,6 @@ const startButton = document.querySelector("#start-Button")
 
 
 
-
 const returnMenuDiv = document.createElement("div")
 const currentPlayerDiv = document.createElement("div")
 const replayDiv = document.createElement("div")
@@ -38,12 +37,70 @@ const guiCtx = guiCanvas.getContext("2d")
 guiCanvas.setAttribute("height", getComputedStyle(guiCanvas)["height"])
 guiCanvas.setAttribute("width", getComputedStyle(guiCanvas)["width"])
 
+const weatherCanvas = document.querySelector("#weather-canvas")
+const weatherCtx = weatherCanvas.getContext("2d")
+weatherCanvas.setAttribute("height", getComputedStyle(weatherCanvas)["height"])
+weatherCanvas.setAttribute("width", getComputedStyle(weatherCanvas)["width"])
+
+
+const windImage = new Image()
+windImage.src = "./imgs/windImg.jpg"
+let windImgsize = 100
+let windIndX = weatherCanvas.width/2-windImgsize/2
+let windIndY = weatherCanvas.height*0.01
+angleRad = 0
+windAng = 0 
+windinit = true
+
+function generateWindIndicator(windang){
+    windang = windang*-1
+    windImage.onload = function(){       
+        // initial image setup
+        
+        if (windinit === true){
+        console.log("init:", windinit)
+        weatherCtx.translate(windIndX,windIndY)
+        weatherCtx.drawImage(windImage,0,0,windImgsize,windImgsize)
+        weatherCtx.translate(windImgsize/2,windImgsize/2)
+        weatherCtx.save()
+        windinit = false
+        console.log("init:", windinit)
+        }
+    }
+    console.log("draw?")
+    weatherCtx.translate(-windIndX-windImgsize/2,-windIndY-windImgsize/2)
+    weatherCtx.clearRect(0,0,weatherCanvas.width,weatherCanvas.height)    
+    weatherCtx.translate(windIndX+windImgsize/2,windIndY+windImgsize/2)
+
+    weatherCtx.rotate(windang)
+    weatherCtx.drawImage(windImage,-windImgsize/2,-windImgsize/2,windImgsize,windImgsize)
+    weatherCtx.rotate(-1*windang)
+}
+
+function rotateWindIndicator(angleRad){
+    //rotation code
+    
+    weatherCtx.translate(-windIndX-windImgsize/2,-windIndY-windImgsize/2)
+    weatherCtx.clearRect(0,0,weatherCanvas.width,weatherCanvas.height)    
+    weatherCtx.restore()
+    
+    
+    weatherCtx.rotate(angleRad)
+    weatherCtx.drawImage(windImage,-windImgsize/2,-windImgsize/2,windImgsize,windImgsize)
+    
+}
+
+
+
+
+
 
 //CLASS SETUP
 class generateGUI {
     constructor(x,y){
         this.x = x
         this.y = y
+        
 
     }
 }
@@ -51,40 +108,23 @@ class generateGUI {
 class WindHUD extends generateGUI{
     constructor(x,y){
         super(x,y)
- 
+        this.windImg
+        
+        
     }
 
-    render(x,y,angle){
-        console.log("wind x:",x,"y:", y)
+    render(x,y){
+        console.log("wind x:",this.x,"y:", this.y)
         console.log("wind render")
-        angle
-        // guiCtx.save()
-        // guiCtx.beginPath()
-        // const arrowtail = generateAngledLineXY(this.x,this.y,windArrowLength/2,angle,dir)
-        // const arrowhead = generateAngledLineXY(this.x,this.y,windArrowLength/2,angle,dir)
-        // guiCtx.moveTo(this.x.this.y)
-        // guiCtx.lineTo(arrowtail[0], arrowtail[1])
+        this.x = x
+        this.y = y
 
 
-        // guiCtx.beginPath()
-        // guiCtx.moveTo(this.x.this.y)
-        // guiCtx.lineTo(arrowtail[0], arrowtail[1])
-        // guiCtx.fillStyle = ""
-        // guiCtx.fill()
+       
 
-        let windImgsize = 100
-        const windImage = new Image()
-        windImage.src = "./imgs/windImg.jpg"
-        
-        windImage.onload = function(){
-            guiCtx.save() 
-            guiCtx.drawImage(windImage,x,y,windImgsize,windImgsize)
-            guiCtx.translate(x+windImgsize/2,y+windImgsize/2)
-            guiCtx.rotate(3.14)           
-            guiCtx.restore()
-            
-            // guiCtx.translate(-x,-y)
-        }
+    }
+
+    rotate(){
         
         
 
@@ -403,19 +443,22 @@ const randWindIntmax = 10000
 const randWindIntmin = 3000
 let windVx = 0
 let windVy = 0
-let windFlag = false
+let windFlag = true
 let windArrowLength = 100
 
 let menuFront = true
 let winscreenFront = false
 let gameplayZindex = 1
-let explosionsZindex = 3
+
 let guiZindex = 2
+let explosionsZindex = 3
 let menuZindex = 4 // in use
 let winscreenZindex = 5 // in use
+let weatherZindex = 3 //in use
 const hitBoxArr = ["","","",""]
 
 // Create objects
+
 let triangle = new TriangleTurrent(PlayerTriXPos/scale,gameFloor,side,PlayerTriColor,"triangle")
 let square = new Turret(PlayerSqXPos/scale,gameFloor,side,PlayerSqColor,"square")
 let SqCannon = new GenerateCannon(square.centerx,square.centery)
@@ -424,7 +467,7 @@ let TriShot = new projectile(TriCannon.cannonMx,TriCannon.cannonMy,projSpeed,Tri
 let SqShot = new projectile(SqCannon.cannonMx,SqCannon.cannonMy,projSpeed,SqCannon.truDeg,SqCannon.dir)
 let TriAngleHUD = new AngleHUD(triangle.centerx,triangle.centery,side)
 let SqAngleHUD = new AngleHUD(square.centerx,square.centery,side)
-let WindIndicator = new WindHUD()
+let WindIndicator = new WindHUD(guiCanvas.width/2,guiCanvas.height-50)
 
 //DOM CONTENT LOADED HERE
 document.addEventListener("DOMContentLoaded", function(){
@@ -470,15 +513,21 @@ document.addEventListener("DOMContentLoaded", function(){
     console.log("gui z:",guiZindex)
     guiCanvas.style.zIndex = guiZindex
     guiCtx.globalCompositeOperation = "source-over"
-    
-    
-    
 
+    weatherCanvas.style.zIndex = weatherZindex
+
+
+    
+    
+    
+    // rotateWindIndicator(pi)
+    
+    // WindIndicator.render(weatherCanvas.width/2,guiCanvas.height*0.1/4+30)
     currCannon = TriCannon
     pauseState = false
     gameLoop()
     windGenerator()
-
+    
     document.addEventListener("keydown", function(e){
     if (pauseState === false) {
             
@@ -529,7 +578,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
 //FUNCTIONS BELOW HERE
 function windGenerator(){
-
+    generateWindIndicator(angleRad)
     if (windFlag === true) {
         setTimeout(function(){
             let windVxmin = -10
@@ -539,7 +588,30 @@ function windGenerator(){
             randWindInt = randWindIntmin+Math.floor(Math.random()*(randWindIntmax-randWindIntmin))
             windVx = windVxmin + Math.random()*(windVxmax-windVxmin)
             windVy = windVymin + Math.random()*(windVymax-windVymin)
+            
+            console.log("windVx:",windVx)
+            console.log("windVy:",windVy)
+            
+            if (windVx > 0 && windVy > 0 ) {
+                //quad 1
+                angleRad = Math.atan(windVy/windVx)
+            } else if (windVx < 0 && windVy > 0 ) {
+                // quad2
+                angleRad = Math.atan(windVy/windVx)*-1 + convertDegtoRad(90)
+            } else if (windVx < 0 && windVy < 0 ) {
+                // quad3
+                angleRad = Math.atan(windVy/windVx) + convertDegtoRad(180)
+            } else if (windVx > 0 && windVy < 0 ) {
+                // quad4
+                angleRad = Math.atan(windVy/windVx)*-1 + convertDegtoRad(270)
+            }
+            
+            console.log("angleRad:",angleRad)
+            
             windGenerator()
+            
+            // guiCtx.clearRect(0,0,guiCanvas.width,guiCanvas.height)
+            
         },randWindInt)
         
     }
@@ -593,7 +665,9 @@ function gameLoop() {
             }
             gameplayCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
             explosionCtx.clearRect(0,0,gameplayCanvasWidth,gameplayCanvasHeight)
-            WindIndicator.render(guiCanvas.width/2,guiCanvas.height*3/4+30,pi)
+            
+            
+            
             GenerateLandscape(landscapeHeight)
             square.renderTurret()
             triangle.renderTurret()

@@ -1,10 +1,12 @@
-#gui-canvas{
+#gui-canvas, #weather-canvas {
     width: 100em;
     height: 70vh;
     /* background-color: black; */
     margin: 0 auto;
     position: absolute;
 }
+
+
 
 #win-canvas {
     width:60em;
