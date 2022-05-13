@@ -812,8 +812,8 @@ function revertY(convertedheight) {
     return gameplayCanvasHeight-convertedheight
 }
 
-let windsetTout = 0
-let windsetTrecurv = 0
+let windsetTstart
+
 
 
 function MenuGameplaySwitchHandler(){
@@ -846,15 +846,11 @@ function MenuGameplaySwitchHandler(){
             windHandler()
             
             if (windFlag === true ) {
-              
+                clearInterval(windsetTstart)
                 windsetTstart = setInterval(windHandler,10000)
 
             } else {
-                clearTimeout(windsetTstart)
-                clearTimeout(windsetTrecurv)
-                windsetTout = 0
-                windsetTrecurv = 0      
-
+                clearInterval(windsetTstart)
                 weatherCtx.clearRect(0,0,weatherCanvas.width,weatherCanvas.height)
             }
         })
@@ -882,6 +878,8 @@ function MenuGameplaySwitchHandler(){
         returnMenuDiv.addEventListener("click", function(){
             menuFront= true
             reset()
+            // clearInterval(windsetTstart)
+            // weatherCtx.clearRect(0,0,weatherCanvas.width,weatherCanvas.height)
             MenuGameplaySwitchHandler()
         })
 
@@ -924,6 +922,8 @@ function winscreenHandler(){
     returnMenuDiv.addEventListener("click", function(){
         winCanvas.style.zIndex = winscreenZindex*-1
         menuFront = true
+        clearInterval(windsetTstart)
+        weatherCtx.clearRect(0,0,weatherCanvas.width,weatherCanvas.height)
         MenuGameplaySwitchHandler()
         reset()
         
