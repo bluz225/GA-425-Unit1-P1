@@ -48,7 +48,7 @@ GA 425 Unit 1 Project 1 Repo
 - [x] implement gravity and projectile motion
 - [x] constant initial velocity of projectile fired
 - [x] implement explosion (circular) radius visual and hitbox on impact
-- [x]  calculate if the hitbox overlaps with enemy player
+- [x] calculate if the hitbox overlaps with enemy player
 ### Game Over
 - [x] end game once one player has been hit
 - [x] display winner and have option to return to start menu or play again
@@ -92,6 +92,7 @@ GA 425 Unit 1 Project 1 Repo
 - stack overflow, various examples 
 - web3 site
 - various codepen examples to draw inspiration
+- wind indicator image: https://png.pngtree.com/png-vector/20190328/ourlarge/pngtree-vector-wind-icon-png-image_884000.jpg
 
 ---
 
